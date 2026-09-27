@@ -135,8 +135,15 @@ textarea{min-height:90px}
 <section id="recent" class="hidden">
 <button class="back" onclick="show('home')">← Home</button>
 <h2>Recent reports</h2>
+
+<input
+  id="searchReports"
+  type="search"
+  placeholder="🔎 Search suburb, street, category..."
+  oninput="filterReports()"
+>
+
 <div id="reports"></div>
-</section>
 
 <section id="councils" class="hidden">
 <button class="back" onclick="show('home')">← Home</button>
@@ -409,7 +416,18 @@ ${img}
 
 function renderReports(){
 
-const a=getReports();
+const search=(document.getElementById("searchReports")?.value||"").trim().toLowerCase();
+
+const all=getReports();
+
+const a=search
+  ? all.filter(r=>
+      [r.suburb,r.street,r.desc,...r.cats]
+      .join(" ")
+      .toLowerCase()
+      .includes(search)
+    )
+  : all;
 
 document.getElementById("reports").innerHTML=
 
@@ -465,7 +483,9 @@ currentFilter=c;
 
 renderReports();
 
-}
+}function filterReports(){
+  renderReports();
+        }
 
 function initMap(){
 
