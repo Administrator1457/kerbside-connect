@@ -1,43 +1,650 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#12372a"><link rel="manifest" href="manifest.webmanifest">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#12372a">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <title>Kerbside Connect</title>
+
 <style>
-:root{--green:#12372a;--mint:#e8f5ee;--accent:#2e7d5b;--text:#173126;--muted:#6b7d74;--card:#fff;--bg:#f4f7f5}*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text)}header{background:var(--green);color:white;padding:28px 20px 24px;border-radius:0 0 26px 26px}header h1{margin:0;font-size:28px}header p{margin:6px 0 0;opacity:.85}.wrap{max-width:720px;margin:auto;padding:18px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.btn,.card{background:var(--card);border:0;border-radius:16px;padding:16px;box-shadow:0 2px 10px #0000000d}.btn{font-weight:700;color:var(--green);text-align:left;cursor:pointer}.btn span{display:block;font-size:26px;margin-bottom:8px}.section{margin-top:20px}.section h2{font-size:19px}.report{margin-top:12px}.tag{display:inline-block;background:var(--mint);color:var(--green);padding:5px 9px;border-radius:99px;font-size:12px;margin:3px}.small{color:var(--muted);font-size:13px}.map{height:360px;border-radius:18px;overflow:hidden;background:#dcefe4}.filterbar{display:flex;gap:7px;overflow:auto;padding:4px 0 10px}.filter{white-space:nowrap;border:1px solid #d6e0db;background:white;border-radius:99px;padding:8px 12px;font-weight:600}.filter.active{background:var(--green);color:#fff}#map{height:100%;width:100%}.photo-preview{width:100%;max-height:240px;object-fit:cover;border-radius:12px;margin-top:8px;display:none}.locbtn{margin-top:10px;width:100%;padding:11px;border:1px solid #cddbd4;background:white;border-radius:12px;font-weight:700;color:var(--green)}.notice{background:#fff8df;border:1px solid #eadca5;border-radius:14px;padding:12px;margin:10px 0;font-size:13px}form label{font-weight:700;font-size:14px;display:block;margin-top:13px}input,textarea,select{width:100%;padding:12px;border:1px solid #d6e0db;border-radius:12px;margin-top:6px;font:inherit;background:white}textarea{min-height:90px}.checks{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.checks label{margin:0;font-weight:500;background:white;border:1px solid #d6e0db;border-radius:99px;padding:8px 11px}.checks input{width:auto;margin:0 5px 0 0}.primary{background:var(--green);color:white;border:0;border-radius:13px;padding:13px 18px;font-weight:700;margin-top:16px;width:100%}.back{background:none;border:0;color:var(--green);font-weight:700;padding:0;margin-bottom:12px}.hidden{display:none}.empty{color:var(--muted);text-align:center;padding:25px}.footer{font-size:12px;color:var(--muted);padding:22px 0;text-align:center}
-</style></head>
+:root{--green:#12372a;--mint:#e8f5ee;--accent:#2e7d5b;--text:#173126;--muted:#6b7d74;--card:#fff;--bg:#f4f7f5}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text)}
+header{background:var(--green);color:white;padding:28px 20px 24px;border-radius:0 0 26px 26px}
+header h1{margin:0;font-size:28px}
+header p{margin:6px 0 0;opacity:.85}
+.wrap{max-width:720px;margin:auto;padding:18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn,.card{background:var(--card);border:0;border-radius:16px;padding:16px;box-shadow:0 2px 10px #0000000d}
+.btn{font-weight:700;color:var(--green);text-align:left;cursor:pointer}
+.btn span{display:block;font-size:26px;margin-bottom:8px}
+.section{margin-top:20px}
+.section h2{font-size:19px}
+.report{margin-top:12px}
+.tag{display:inline-block;background:var(--mint);color:var(--green);padding:5px 9px;border-radius:99px;font-size:12px;margin:3px}
+.small{color:var(--muted);font-size:13px}
+.map{height:360px;border-radius:18px;overflow:hidden;background:#dcefe4}
+.filterbar{display:flex;gap:7px;overflow:auto;padding:4px 0 10px}
+.filter{white-space:nowrap;border:1px solid #d6e0db;background:white;border-radius:99px;padding:8px 12px;font-weight:600}
+.filter.active{background:var(--green);color:#fff}
+#map{height:100%;width:100%}
+.photo-preview{width:100%;max-height:240px;object-fit:cover;border-radius:12px;margin-top:8px;display:none}
+.locbtn{margin-top:10px;width:100%;padding:11px;border:1px solid #cddbd4;background:white;border-radius:12px;font-weight:700;color:var(--green)}
+.notice{background:#fff8df;border:1px solid #eadca5;border-radius:14px;padding:12px;margin:10px 0;font-size:13px}
+form label{font-weight:700;font-size:14px;display:block;margin-top:13px}
+input,textarea,select{width:100%;padding:12px;border:1px solid #d6e0db;border-radius:12px;margin-top:6px;font:inherit;background:white}
+textarea{min-height:90px}
+.checks{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.checks label{margin:0;font-weight:500;background:white;border:1px solid #d6e0db;border-radius:99px;padding:8px 11px}
+.checks input{width:auto;margin:0 5px 0 0}
+.primary{background:var(--green);color:white;border:0;border-radius:13px;padding:13px 18px;font-weight:700;margin-top:16px;width:100%}
+.back{background:none;border:0;color:var(--green);font-weight:700;padding:0;margin-bottom:12px}
+.hidden{display:none}
+.empty{color:var(--muted);text-align:center;padding:25px}
+.footer{font-size:12px;color:var(--muted);padding:22px 0;text-align:center}
+</style>
+</head>
+
 <body>
-<header><div class="wrap"><h1>♻️ Kerbside Connect</h1><p>Find it • Reuse it • Keep it out of landfill</p></div></header>
+
+<header>
+<div class="wrap">
+<h1>♻️ Kerbside Connect</h1>
+<p>Find it • Reuse it • Keep it out of landfill</p>
+</div>
+</header>
+
 <main class="wrap">
-<section id="home"><div class="grid">
+
+<section id="home">
+<div class="grid">
 <button class="btn" onclick="show('mapview')"><span>🗺️</span>Find Clean-Ups</button>
 <button class="btn" onclick="show('report')"><span>➕</span>Report a Clean-Up</button>
 <button class="btn" onclick="show('recent')"><span>🕐</span>Recent Reports</button>
 <button class="btn" onclick="show('councils')"><span>🏛️</span>Council Information</button>
-</div><div class="section"><div class="card"><b>Community powered</b><p class="small">Reports are submitted by users and are not official council notifications unless clearly marked as official.</p></div></div><div class="section"><h2>Latest nearby</h2><div id="latest"></div></div></section>
-<section id="mapview" class="hidden"><button class="back" onclick="show('home')">← Home</button><h2>Clean-ups near you</h2><div class="filterbar" id="filters"></div><div class="map"><div id="map"></div></div><button class="locbtn" onclick="useLocation()">📍 Use my current location</button><div id="locationStatus" class="small">Location is optional. Your exact current location is not published.</div><div class="notice">Map reports are community submissions. Check the site before travelling and respect private property.</div><div id="mapReports"></div></section>
-<section id="report" class="hidden"><button class="back" onclick="show('home')">← Home</button><h2>Report a clean-up</h2><form onsubmit="saveReport(event)"><label>Suburb<input id="suburb" required placeholder="e.g. Minto"></label><label>Street / area <span class="small">(optional)</span><input id="street" placeholder="e.g. near the shopping centre"></label><label>What did you see?</label><div class="checks"><label><input type="checkbox" value="Tools">Tools</label><label><input type="checkbox" value="Lawn equipment">Lawn equipment</label><label><input type="checkbox" value="Furniture">Furniture</label><label><input type="checkbox" value="Metal">Metal</label><label><input type="checkbox" value="Electronics">Electronics</label><label><input type="checkbox" value="Other">Other</label></div><label>Photo <span class="small">(optional)</span><input id="photo" type="file" accept="image/*" capture="environment" onchange="previewPhoto(event)"></label><img id="photoPreview" class="photo-preview" alt="Photo preview"><label>Description<textarea id="desc" maxlength="500" placeholder="Optional details"></textarea></label><div class="small">Reports automatically expire after 3 days unless refreshed.</div><button class="primary">Submit community report</button></form></section>
-<section id="recent" class="hidden"><button class="back" onclick="show('home')">← Home</button><h2>Recent reports</h2><div id="reports"></div></section>
-<section id="councils" class="hidden"><button class="back" onclick="show('home')">← Home</button><h2>Council information</h2><div id="councilList"></div></section>
-<div class="footer">Kerbside Connect is a community project. Council information should always be checked against the relevant council's official website.</div>
+</div>
+
+<div class="section">
+<div class="card">
+<b>Community powered</b>
+<p class="small">Reports are submitted by users and are not official council notifications unless clearly marked as official.</p>
+</div>
+</div>
+
+<div class="section">
+<h2>Latest nearby</h2>
+<div id="latest"></div>
+</div>
+</section>
+
+<section id="mapview" class="hidden">
+<button class="back" onclick="show('home')">← Home</button>
+<h2>Clean-ups near you</h2>
+<div class="filterbar" id="filters"></div>
+<div class="map"><div id="map"></div></div>
+<button class="locbtn" onclick="useLocation()">📍 Use my current location</button>
+<div id="locationStatus" class="small">Location is optional. Your exact current location is not published.</div>
+<div class="notice">Map reports are community submissions. Check the site before travelling and respect private property.</div>
+<div id="mapReports"></div>
+</section>
+
+<section id="report" class="hidden">
+<button class="back" onclick="show('home')">← Home</button>
+<h2>Report a clean-up</h2>
+
+<form onsubmit="saveReport(event)">
+
+<label>Suburb
+<input id="suburb" required placeholder="e.g. Minto">
+</label>
+
+<label>Street / area <span class="small">(optional)</span>
+<input id="street" placeholder="e.g. near the shopping centre">
+</label>
+
+<label>What did you see?</label>
+
+<div class="checks">
+<label><input type="checkbox" value="Tools">Tools</label>
+<label><input type="checkbox" value="Lawn equipment">Lawn equipment</label>
+<label><input type="checkbox" value="Furniture">Furniture</label>
+<label><input type="checkbox" value="Metal">Metal</label>
+<label><input type="checkbox" value="Electronics">Electronics</label>
+<label><input type="checkbox" value="Other">Other</label>
+</div>
+
+<label>Photo <span class="small">(optional)</span>
+<input id="photo" type="file" accept="image/*" capture="environment" onchange="previewPhoto(event)">
+</label>
+
+<img id="photoPreview" class="photo-preview" alt="Photo preview">
+
+<label>Description
+<textarea id="desc" maxlength="500" placeholder="Optional details"></textarea>
+</label>
+
+<div class="small">Reports automatically expire after 3 days unless refreshed.</div>
+
+<button class="primary">Submit community report</button>
+
+</form>
+</section>
+
+<section id="recent" class="hidden">
+<button class="back" onclick="show('home')">← Home</button>
+<h2>Recent reports</h2>
+<div id="reports"></div>
+</section>
+
+<section id="councils" class="hidden">
+<button class="back" onclick="show('home')">← Home</button>
+<h2>Council information</h2>
+<div id="councilList"></div>
+</section>
+
+<div class="footer">
+Kerbside Connect is a community project. Council information should always be checked against the relevant council's official website.
+</div>
+
 </main>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-const EXPIRY=3*24*60*60*1000; let map=null,userPos=null,currentFilter="All",photoData="";
-const councils=[['Campbelltown City Council','https://www.campbelltown.nsw.gov.au/Services-and-Facilities/Waste-and-Recycling/Kerbside-clean-up'],['Camden Council','https://www.camden.nsw.gov.au/waste/kerbside-clean-up'],['Liverpool City Council','https://www.liverpool.nsw.gov.au/services/waste-and-recycling/household-clean-up-service'],['Fairfield City Council','https://www.fairfieldcity.nsw.gov.au/Services/Waste-and-recycling'],['Wollondilly Shire Council','https://www.wollondilly.nsw.gov.au/']];
-function show(id){document.querySelectorAll('section').forEach(s=>s.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');if(id==='recent'||id==='home'||id==='mapview')renderReports();if(id==='mapview'){setTimeout(()=>{initMap();map.invalidateSize();renderMap()},80)}}
-function getReports(){let a=JSON.parse(localStorage.getItem('kc_reports')||'[]');const now=Date.now();a=a.filter(r=>now-new Date(r.date).getTime()<EXPIRY);localStorage.setItem('kc_reports',JSON.stringify(a));return a}
-function saveReport(e){e.preventDefault();const cats=[...document.querySelectorAll('#report input[type=checkbox]:checked')].map(x=>x.value);if(!cats.length){alert('Please select at least one category.');return}const r={id:Date.now(),suburb:suburb.value.trim(),street:street.value.trim(),desc:desc.value.trim(),cats,date:new Date().toISOString(),lat:userPos?.lat||null,lng:userPos?.lng||null,photo:photoData||''};const a=getReports();a.unshift(r);localStorage.setItem('kc_reports',JSON.stringify(a.slice(0,100)));e.target.reset();photoData='';photoPreview.style.display='none';photoPreview.src='';alert('Thanks! Your community report has been added.');show('recent')}
-function previewPhoto(e){const f=e.target.files?.[0];if(!f)return;if(f.size>4*1024*1024){alert('Please choose a photo under 4 MB.');e.target.value='';return}const reader=new FileReader();reader.onload=()=>{photoData=reader.result;photoPreview.src=photoData;photoPreview.style.display='block'};reader.readAsDataURL(f)}
-function card(r){const img=r.photo?'<img src="'+r.photo+'" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-top:8px" alt="Community report photo">':'';return `<div class="card report"><b>📍 ${esc(r.suburb)}</b><div class="small">Reported ${new Date(r.date).toLocaleString()}</div>${r.street?`<div>${esc(r.street)}</div>`:''}<div>${r.cats.map(c=>`<span class="tag">${esc(c)}</span>`).join('')}</div>${r.desc?`<p>${esc(r.desc)}</p>`:''}${img}<div class="small">🔵 Community reported — not council confirmed</div></div>`}
-function renderReports(){const a=getReports();document.getElementById('reports').innerHTML=a.length?a.map(card).join(''):'<div class="empty">No current community reports.</div>';document.getElementById('latest').innerHTML=a.length?card(a[0]):'<div class="card empty">Be the first to report a clean-up.</div>';document.getElementById('mapReports').innerHTML=a.length?'<h3>Current reported areas</h3>'+a.slice(0,10).map(card).join(''):'<div class="empty">No current reports yet.</div>';buildFilters(a);if(map)renderMap()}
-function buildFilters(a){const cats=['All',...new Set(a.flatMap(r=>r.cats))];document.getElementById('filters').innerHTML=cats.map(c=>`<button class="filter ${c===currentFilter?'active':''}" onclick="setFilter('${escAttr(c)}')">${esc(c)}</button>`).join('')}
-function setFilter(c){currentFilter=c;renderReports()}
-function initMap(){if(map)return;map=L.map('map').setView([-34.066,150.814],11);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map)}
-function renderMap(){if(!map)return;map.eachLayer(l=>{if(l instanceof L.Marker)map.removeLayer(l);if(l instanceof L.Circle)map.removeLayer(l)});getReports().filter(r=>currentFilter==='All'||r.cats.includes(currentFilter)).forEach(r=>{if(r.lat&&r.lng)L.marker([r.lat,r.lng]).addTo(map).bindPopup(`<b>📍 ${esc(r.suburb)}</b><br>${r.cats.map(esc).join(', ')}<br><span style="color:#6b7d74">Community reported</span>`) });if(userPos)L.circle([userPos.lat,userPos.lng],{radius:350}).addTo(map)}
-function useLocation(){if(!navigator.geolocation){locationStatus.textContent='Location is not supported by this browser.';return}locationStatus.textContent='Requesting your location…';navigator.geolocation.getCurrentPosition(pos=>{userPos={lat:pos.coords.latitude,lng:pos.coords.longitude};map.setView([userPos.lat,userPos.lng],14);locationStatus.textContent='Your location is used on this device for the map/report pin.';renderMap()},()=>{locationStatus.textContent='Location permission was not granted. You can still use the app.'},{enableHighAccuracy:true,timeout:10000})}
-function esc(s){return String(s||'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function escAttr(s){return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
-document.getElementById('councilList').innerHTML=councils.map(c=>`<div class="card report"><b>🏛️ ${c[0]}</b><p class="small">Official council information</p><a href="${c[1]}" target="_blank" rel="noopener">Open council website →</a></div>`).join('');renderReports();
-</script></body></html>
+
+const EXPIRY=3*24*60*60*1000;
+
+const SUPABASE_URL="https://vaopowstbbppgfesvmgh.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_CXeD_uVbFlEJBD0Ks5lASQ_pQAu6zwi";
+
+const db=window.supabase.createClient(
+SUPABASE_URL,
+SUPABASE_PUBLISHABLE_KEY
+);
+
+let reportsCache=[];
+let map=null;
+let userPos=null;
+let currentFilter="All";
+let photoData="";
+
+const councils=[
+["Campbelltown City Council","https://www.campbelltown.nsw.gov.au/Services-and-Facilities/Waste-and-Recycling/Kerbside-clean-up"],
+["Camden Council","https://www.camden.nsw.gov.au/waste/kerbside-clean-up"],
+["Liverpool City Council","https://www.liverpool.nsw.gov.au/services/waste-and-recycling/household-clean-up-service"],
+["Fairfield City Council","https://www.fairfieldcity.nsw.gov.au/Services/Waste-and-recycling"],
+["Wollondilly Shire Council","https://www.wollondilly.nsw.gov.au/"]
+];
+
+function show(id){
+
+document.querySelectorAll("section").forEach(
+s=>s.classList.add("hidden")
+);
+
+document.getElementById(id).classList.remove("hidden");
+
+if(id==="recent"||id==="home"||id==="mapview"){
+renderReports();
+}
+
+if(id==="mapview"){
+
+setTimeout(()=>{
+
+initMap();
+
+map.invalidateSize();
+
+renderMap();
+
+},100);
+
+}
+
+}
+
+function getReports(){
+
+const now=Date.now();
+
+return reportsCache.filter(
+r=>now-new Date(r.date).getTime()<EXPIRY
+);
+
+}
+
+async function loadReports(){
+
+const {data,error}=await db
+.from("Reports")
+.select("*")
+.order("created_at",{ascending:false});
+
+if(error){
+
+console.error(error);
+
+alert(
+"Could not load community reports. Please check the Supabase table permissions."
+);
+
+return;
+
+}
+
+reportsCache=(data||[]).map(r=>({
+
+id:r.id,
+
+suburb:r.Suburb||"",
+
+street:r.Street||"",
+
+desc:r.Description||"",
+
+cats:Array.isArray(r.Category)?r.Category:[],
+
+date:r.created_at||r.Date||new Date().toISOString(),
+
+lat:r.Lat==null?null:Number(r.Lat),
+
+lng:r.lng==null?null:Number(r.lng),
+
+photo:r.Photo||""
+
+})).filter(
+
+r=>Date.now()-new Date(r.date).getTime()<EXPIRY
+
+);
+
+renderReports();
+
+}
+
+async function saveReport(e){
+
+e.preventDefault();
+
+const cats=[
+...document.querySelectorAll(
+'#report input[type="checkbox"]:checked'
+)
+].map(x=>x.value);
+
+if(!cats.length){
+
+alert("Please select at least one category.");
+
+return;
+
+}
+
+const payload={
+
+Suburb:suburb.value.trim(),
+
+Street:street.value.trim()||null,
+
+Category:cats,
+
+Lat:userPos?.lat??null,
+
+lng:userPos?.lng??null,
+
+Description:desc.value.trim()||null,
+
+Photo:photoData||null,
+
+Date:new Date().toISOString().slice(0,10)
+
+};
+
+const {error}=await db
+.from("Reports")
+.insert(payload);
+
+if(error){
+
+console.error(error);
+
+alert(
+"Sorry, the report could not be saved. Please try again."
+);
+
+return;
+
+}
+
+await loadReports();
+
+e.target.reset();
+
+photoData="";
+
+photoPreview.style.display="none";
+
+photoPreview.src="";
+
+alert("Thanks! Your community report has been added.");
+
+show("recent");
+
+}
+
+function previewPhoto(e){
+
+const f=e.target.files?.[0];
+
+if(!f)return;
+
+if(f.size>4*1024*1024){
+
+alert("Please choose a photo under 4 MB.");
+
+e.target.value="";
+
+return;
+
+}
+
+const reader=new FileReader();
+
+reader.onload=()=>{
+
+photoData=reader.result;
+
+photoPreview.src=photoData;
+
+photoPreview.style.display="block";
+
+};
+
+reader.readAsDataURL(f);
+
+}
+
+function card(r){
+
+const img=r.photo
+
+?'<img src="'+r.photo+'" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-top:8px" alt="Community report photo">'
+
+:"";
+
+return `
+
+<div class="card report">
+
+<b>📍 ${esc(r.suburb)}</b>
+
+<div class="small">
+Reported ${new Date(r.date).toLocaleString()}
+</div>
+
+${r.street?`<div>${esc(r.street)}</div>`:""}
+
+<div>
+${r.cats.map(c=>`<span class="tag">${esc(c)}</span>`).join("")}
+</div>
+
+${r.desc?`<p>${esc(r.desc)}</p>`:""}
+
+${img}
+
+<div class="small">
+🔵 Community reported — not council confirmed
+</div>
+
+</div>
+
+`;
+
+}
+
+function renderReports(){
+
+const a=getReports();
+
+document.getElementById("reports").innerHTML=
+
+a.length
+?a.map(card).join("")
+:'<div class="empty">No current community reports.</div>';
+
+document.getElementById("latest").innerHTML=
+
+a.length
+?card(a[0])
+:'<div class="card empty">Be the first to report a clean-up.</div>';
+
+document.getElementById("mapReports").innerHTML=
+
+a.length
+?"<h3>Current reported areas</h3>"+
+a.slice(0,10).map(card).join("")
+:'<div class="empty">No current reports yet.</div>';
+
+buildFilters(a);
+
+if(map)renderMap();
+
+}
+
+function buildFilters(a){
+
+const cats=[
+"All",
+...new Set(a.flatMap(r=>r.cats))
+];
+
+document.getElementById("filters").innerHTML=
+
+cats.map(c=>`
+
+<button
+class="filter ${c===currentFilter?"active":""}"
+onclick="setFilter('${escAttr(c)}')">
+
+${esc(c)}
+
+</button>
+
+`).join("");
+
+}
+
+function setFilter(c){
+
+currentFilter=c;
+
+renderReports();
+
+}
+
+function initMap(){
+
+if(map)return;
+
+map=L.map("map").setView(
+[-34.066,150.814],
+11
+);
+
+L.tileLayer(
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+{
+maxZoom:19,
+attribution:"© OpenStreetMap contributors"
+}
+).addTo(map);
+
+}
+
+function renderMap(){
+
+if(!map)return;
+
+map.eachLayer(l=>{
+
+if(l instanceof L.Marker)
+map.removeLayer(l);
+
+if(l instanceof L.Circle)
+map.removeLayer(l);
+
+});
+
+getReports()
+
+.filter(
+r=>currentFilter==="All"||r.cats.includes(currentFilter)
+)
+
+.forEach(r=>{
+
+if(r.lat!=null&&r.lng!=null){
+
+L.marker([r.lat,r.lng])
+.addTo(map)
+.bindPopup(`
+
+<b>📍 ${esc(r.suburb)}</b>
+
+<br>
+
+${r.cats.map(esc).join(", ")}
+
+<br>
+
+<span style="color:#6b7d74">
+Community reported
+</span>
+
+`);
+
+}
+
+});
+
+if(userPos){
+
+L.circle(
+[userPos.lat,userPos.lng],
+{radius:350}
+).addTo(map);
+
+}
+
+}
+
+function useLocation(){
+
+if(!navigator.geolocation){
+
+locationStatus.textContent=
+"Location is not supported by this browser.";
+
+return;
+
+}
+
+locationStatus.textContent=
+"Requesting your location…";
+
+navigator.geolocation.getCurrentPosition(
+
+pos=>{
+
+userPos={
+lat:pos.coords.latitude,
+lng:pos.coords.longitude
+};
+
+map.setView(
+[userPos.lat,userPos.lng],
+14
+);
+
+locationStatus.textContent=
+"Your location is used on this device for the map/report pin.";
+
+renderMap();
+
+},
+
+()=>{
+
+locationStatus.textContent=
+"Location permission was not granted. You can still use the app.";
+
+},
+
+{
+enableHighAccuracy:true,
+timeout:10000
+}
+
+);
+
+}
+
+function esc(s){
+
+return String(s||"")
+.replace(/[&<>'"]/g,c=>({
+
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+"'":"&#39;",
+'"':"&quot;"
+
+}[c]));
+
+}
+
+function escAttr(s){
+
+return String(s||"")
+.replace(/\\/g,"\\\\")
+.replace(/'/g,"\\'");
+
+}
+
+document.getElementById("councilList").innerHTML=
+
+councils.map(c=>`
+
+<div class="card report">
+
+<b>🏛️ ${c[0]}</b>
+
+<p class="small">
+Official council information
+</p>
+
+<a
+href="${c[1]}"
+target="_blank"
+rel="noopener">
+
+Open council website →
+
+</a>
+
+</div>
+
+`).join("");
+
+loadReports();
+
+</script>
+
+</body>
+</html>
