@@ -420,7 +420,29 @@ ${img}
 `;
 
   }
+async function flagReport(id){
 
+const reason=prompt(
+"Why are you flagging this report?\n\nExamples: incorrect location, inappropriate content, already removed, other."
+);
+
+if(!reason||!reason.trim())return;
+
+const {error}=await db
+  .from("report_flags")
+  .insert({
+    report_id:id,
+    reason:reason.trim()
+  });
+
+if(error){
+  alert("Sorry, the report could not be flagged. Please try again.");
+  console.error(error);
+  return;
+}
+
+alert("🚩 Report flagged. Thanks for helping keep Kerbside Connect useful.");
+  }
 function renderReports(){
 
 const search=(document.getElementById("searchReports")?.value||"").trim().toLowerCase();
