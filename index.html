@@ -539,61 +539,6 @@ function renderMap(){
 
   }
 }
-if(!map)return;
-
-map.eachLayer(l=>{
-
-if(l instanceof L.Marker)
-map.removeLayer(l);
-
-if(l instanceof L.Circle)
-map.removeLayer(l);
-
-});
-
-getReports()
-
-.filter(
-r=>currentFilter==="All"||r.cats.includes(currentFilter)
-)
-
-.forEach(r=>{
-
-if(r.lat!=null&&r.lng!=null){
-
-L.marker([r.lat,r.lng])
-.addTo(map)
-.bindPopup(`
-
-<b>📍 ${esc(r.suburb)}</b>
-
-<br>
-
-${r.cats.map(esc).join(", ")}
-
-<br>
-
-<span style="color:#6b7d74">
-Community reported
-</span>
-
-`);
-
-}
-
-});
-
-if(userPos){
-
-L.circle(
-[userPos.lat,userPos.lng],
-{radius:350}
-).addTo(map);
-
-}
-
-}
-
 function useLocation(){
 
 if(!navigator.geolocation){
