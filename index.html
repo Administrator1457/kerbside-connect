@@ -447,7 +447,8 @@ async function loadMyReports(){
     el.innerHTML='<div class="empty">You have not submitted any reports yet.</div>';
     return;
   }
-  el.innerHTML=mine.map(r=>{
+  const expiringCount=mine.filter(r=>r.status==="active"&&r.expiresAt&&new Date(r.expiresAt).getTime()>Date.now()&&new Date(r.expiresAt).getTime()-Date.now()<=24*60*60*1000).length;
+  el.innerHTML=(expiringCount?'<div class="notice">⏳ You have '+expiringCount+' report'+(expiringCount===1?"":"s")+' expiring within 24 hours. Refresh it below if it is still relevant.</div>':"")+mine.map(r=>{
     const expiry=r.expiresAt?new Date(r.expiresAt):null;
     const expiresSoon=expiry&&expiry.getTime()>Date.now()&&expiry.getTime()-Date.now()<=24*60*60*1000;
     const expired=expiry && expiry.getTime()<=Date.now();
