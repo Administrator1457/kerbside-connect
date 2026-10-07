@@ -982,6 +982,10 @@ Open council website →
 `).join("");
 
 refreshAuthUI();
+db.auth.onAuthStateChange((_event,session)=>{
+  currentUser=session?.user||null;
+  renderAuthIdentity(currentUser);
+});
 loadReports();
 
 window.addEventListener("beforeinstallprompt",event=>{
