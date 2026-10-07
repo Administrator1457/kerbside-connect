@@ -231,6 +231,7 @@ let photoData="";
 let authMode="signin";
 let isLoadingReports=false;
 let deferredInstallPrompt=null;
+const $=id=>document.getElementById(id);
 
 const councils=[
 ["Campbelltown City Council","https://www.campbelltown.nsw.gov.au/Services-and-Facilities/Waste-and-Recycling/Kerbside-clean-up"],
@@ -406,17 +407,17 @@ const cats=[
 )
 ].map(x=>x.value);
 
-if(!suburb.value.trim()){
+if(!$("suburb").value.trim()){
 alert("Please enter the suburb.");
 if(submitButton)submitButton.disabled=false; return;
 }
 
-if(suburb.value.trim().length>80){
+if($("suburb").value.trim().length>80){
 alert("Please keep the suburb name under 80 characters.");
 if(submitButton)submitButton.disabled=false; return;
 }
 
-if(street.value.trim().length>160){
+if($("street").value.trim().length>160){
 alert("Please keep the street/area under 160 characters.");
 if(submitButton)submitButton.disabled=false; return;
 }
@@ -427,7 +428,7 @@ if(submitButton)submitButton.disabled=false; return;
 }
 
 const recentSimilar=reportsCache.some(r=>{
-  const sameSuburb=r.suburb.trim().toLowerCase()===suburb.value.trim().toLowerCase();
+  const sameSuburb=r.suburb.trim().toLowerCase()===$("suburb").value.trim().toLowerCase();
   const sameStreet=(r.street||"").trim().toLowerCase()===(street.value||"").trim().toLowerCase();
   const overlap=r.cats.some(x=>cats.includes(x));
   return sameSuburb&&sameStreet&&overlap;
@@ -443,7 +444,7 @@ const payload={
 
 Suburb:suburb.value.trim(),
 
-Street:street.value.trim()||null,
+Street:$("street").value.trim()||null,
 
 Category:cats,
 
@@ -451,7 +452,7 @@ Lat:userPos?Number(userPos.lat.toFixed(3)):null,
 
 lng:userPos?Number(userPos.lng.toFixed(3)):null,
 
-Description:desc.value.trim()||null,
+Description:$("desc").value.trim()||null,
 
 Photo:photoData||null,
 
@@ -485,9 +486,9 @@ e.target.reset();
 
 photoData="";
 
-photoPreview.style.display="none";
+$("photoPreview").style.display="none";
 
-photoPreview.src="";
+$("photoPreview").src="";
 
 if(submitButton)submitButton.disabled=false;
 if(submitStatus)submitStatus.textContent="";
@@ -516,8 +517,8 @@ canvas.height=Math.max(1,Math.round(img.height*scale));
 const ctx=canvas.getContext("2d");
 ctx.drawImage(img,0,0,canvas.width,canvas.height);
 photoData=canvas.toDataURL("image/jpeg",0.78);
-photoPreview.src=photoData;
-photoPreview.style.display="block";
+$("photoPreview").src=photoData;
+$("photoPreview").style.display="block";
 };
 img.src=reader.result;
 };
@@ -793,14 +794,14 @@ function useLocation(){
 
 if(!navigator.geolocation){
 
-locationStatus.textContent=
+$("locationStatus").textContent=
 "Location is not supported by this browser.";
 
 return;
 
 }
 
-locationStatus.textContent=
+$("locationStatus").textContent=
 "Requesting your location…";
 
 navigator.geolocation.getCurrentPosition(
@@ -863,7 +864,7 @@ return String(s||"")
 
 }
 
-document.getElementById("councilList").innerHTML=
+$("councilList").innerHTML=
 
 councils.map(c=>`
 
