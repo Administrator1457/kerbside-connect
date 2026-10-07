@@ -80,6 +80,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <button class="btn" type="button" aria-label="View recent community reports" onclick="show('recent')"><span>🕐</span>Recent Reports</button>
 <button class="btn" type="button" aria-label="View council information" onclick="show('councils')"><span>🏛️</span>Council Information</button>
 <button class="btn" type="button" aria-label="Open my account" onclick="show('account')"><span>👤</span>My Account</button>
+<button class="btn hidden" type="button" id="moderationButton" aria-label="Open moderation dashboard" onclick="show('moderation')"><span>🛡️</span>Moderation</button>
 <button class="btn" type="button" id="installButton" aria-label="Install Kerbside Connect" onclick="installApp()" style="display:none"><span>📲</span>Install App</button>
 <button class="btn" type="button" aria-label="View saved reports" onclick="show('saved')"><span>❤️</span>Saved Reports</button>
 </div>
@@ -149,6 +150,13 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <div id="submitStatus" class="small" aria-live="polite"></div>
 
 </form>
+</section>
+
+<section id="moderation" class="hidden">
+<button class="back" onclick="show('home')">← Home</button>
+<h2>Moderation dashboard</h2>
+<div class="small">Moderator-only tools for reviewing flagged community reports.</div>
+<div id="moderationReports"></div>
 </section>
 
 <section id="saved" class="hidden">
@@ -356,7 +364,62 @@ async function handleSignOut(){
     return;
   }
   await refreshAuthUI();
+  await refreshModeratorUI();
   alert("You have been signed out.");
+}
+
+async function refreshModeratorUI(){
+  const button=$("moderationButton");
+  if(!button)return;
+  button.classList.add("hidden");
+  if(!currentUser)return;
+  const {data,error}=await db.from("user_roles").select("role").eq("user_id",currentUser.id).maybeSingle();
+  if(!error && data && ["moderator","admin"].includes(data.role))button.classList.remove("hidden");
+}
+
+async function loadModeration(){
+  const el=$("moderationReports");
+  if(!el)return;
+  if(!currentUser){el.innerHTML='<div class="empty">Sign in with a moderator account to use moderation.</div>';return;}
+  el.innerHTML='<div class="empty">Loading flagged reports…</div>';
+  const {data:flags,error}=await db.from("report_flags").select("*").eq("status","open").order("created_at",{ascending:false});
+  if(error){el.innerHTML='<div class="empty">Could not load moderation records.</div>';console.error(error);return;}
+  if(!flags?.length){el.innerHTML='<div class="card empty">No open flags. 🎉</div>';return;}
+  const ids=[...new Set(flags.map(f=>f.report_id))];
+  const {data:reports}=await db.from("Reports").select("*").in("id",ids);
+  const byId=new Map((reports||[]).map(r=>[String(r.id),r]));
+  el.innerHTML=flags.map(flag=>{
+    const r=byId.get(String(flag.report_id));
+    return `<div class="card report">
+      <div class="report-head"><b>🚩 Report #${esc(flag.report_id)}</b><span class="verified">${esc(flag.status)}</span></div>
+      <div class="small">Flagged ${new Date(flag.created_at).toLocaleString()}</div>
+      <p><b>Reason:</b> ${esc(flag.reason||"No reason supplied")}</p>
+      ${r?card(r):'<div class="notice">The original report is no longer visible.</div>'}
+      <button class="filter" type="button" onclick="moderateFlag(${flag.id},'dismiss')">Dismiss flag</button>
+      ${r?'<button class="filter" type="button" onclick="moderateFlag('+flag.id+',\'remove\')">Remove report</button>':""}
+    </div>`;
+  }).join("");
+}
+
+async function moderateFlag(flagId,action){
+  if(!currentUser)return;
+  const {data:role}=await db.from("user_roles").select("role").eq("user_id",currentUser.id).maybeSingle();
+  if(!role||!["moderator","admin"].includes(role.role)){alert("Moderator access required.");return;}
+  if(action==="remove"){
+    const {data:flag}=await db.from("report_flags").select("report_id").eq("id",flagId).single();
+    if(flag?.report_id){
+      const {error}=await db.from("Reports").update({status:"removed",updated_at:new Date().toISOString()}).eq("id",flag.report_id);
+      if(error){alert("Could not remove the report.");return;}
+    }
+  }
+  const {error}=await db.from("report_flags").update({
+    status:action==="remove"?"reviewed":"dismissed",
+    reviewed_at:new Date().toISOString(),
+    reviewed_by:currentUser.id
+  }).eq("id",flagId);
+  if(error){alert("Could not update the flag.");return;}
+  await loadReports();
+  await loadModeration();
 }
 
 function show(id){
@@ -374,6 +437,7 @@ renderReports();
 }
 
 if(id==="saved")renderSaved();
+if(id==="moderation")loadModeration();
 
 if(id==="mapview"){
 
@@ -996,9 +1060,15 @@ Open council website →
 `).join("");
 
 refreshAuthUI();
+db.auth.getSession().then(({data})=>{
+  currentUser=data?.session?.user||null;
+  renderAuthIdentity(currentUser);
+  refreshModeratorUI();
+});
 db.auth.onAuthStateChange((_event,session)=>{
   currentUser=session?.user||null;
   renderAuthIdentity(currentUser);
+  refreshModeratorUI();
 });
 loadReports();
 updateDescriptionCount();
