@@ -65,6 +65,7 @@ textarea{min-height:90px}
 <button class="btn" onclick="show('report')"><span>➕</span>Report a Clean-Up</button>
 <button class="btn" onclick="show('recent')"><span>🕐</span>Recent Reports</button>
 <button class="btn" onclick="show('councils')"><span>🏛️</span>Council Information</button>
+<button class="btn" onclick="show('account')"><span>👤</span>My Account</button>
 </div>
 
 <div class="section">
@@ -145,6 +146,26 @@ textarea{min-height:90px}
 
 </section>
 
+<section id="account" class="hidden">
+<button class="back" onclick="show('home')">← Home</button>
+<h2>My Account</h2>
+<div class="card">
+<p id="authStatus" class="small">You can use Kerbside Connect without an account. Sign in if you want an account for future personalised features.</p>
+<form onsubmit="handleAuth(event)">
+<label>Email
+<input id="authEmail" type="email" required autocomplete="email" placeholder="you@example.com">
+</label>
+<label>Password
+<input id="authPassword" type="password" required minlength="6" autocomplete="current-password" placeholder="At least 6 characters">
+</label>
+<button class="primary" type="submit" id="authButton">Sign in</button>
+</form>
+<button class="locbtn" type="button" onclick="handleSignUp()">Create account</button>
+<button class="locbtn" type="button" onclick="handleSignOut()">Sign out</button>
+</div>
+<div class="notice">Your account is optional. Never share your password with anyone, including Kerbside Connect volunteers.</div>
+</section>
+
 <section id="councils" class="hidden">
 <button class="back" onclick="show('home')">← Home</button>
 <h2>Council information</h2>
@@ -178,6 +199,7 @@ let map=null;
 let userPos=null;
 let currentFilter="All";
 let photoData="";
+let authMode="signin";
 
 const councils=[
 ["Campbelltown City Council","https://www.campbelltown.nsw.gov.au/Services-and-Facilities/Waste-and-Recycling/Kerbside-clean-up"],
@@ -186,6 +208,62 @@ const councils=[
 ["Fairfield City Council","https://www.fairfieldcity.nsw.gov.au/Services/Waste-and-recycling"],
 ["Wollondilly Shire Council","https://www.wollondilly.nsw.gov.au/"]
 ];
+
+async function refreshAuthUI(){
+  const {data}=await db.auth.getSession();
+  const session=data?.session;
+  const status=document.getElementById("authStatus");
+  const button=document.getElementById("authButton");
+  if(!status||!button)return;
+  if(session){
+    status.textContent="Signed in as "+(session.user.email||"your account")+".";
+    button.textContent="Signed in";
+    button.disabled=true;
+  }else{
+    status.textContent="You can use Kerbside Connect without an account. Sign in if you want an account for future personalised features.";
+    button.textContent="Sign in";
+    button.disabled=false;
+  }
+}
+
+async function handleAuth(e){
+  e.preventDefault();
+  const email=document.getElementById("authEmail").value.trim();
+  const password=document.getElementById("authPassword").value;
+  const {error}=await db.auth.signInWithPassword({email,password});
+  if(error){
+    alert("Sign in failed: "+error.message);
+    return;
+  }
+  await refreshAuthUI();
+  alert("Welcome back!");
+}
+
+async function handleSignUp(){
+  const email=document.getElementById("authEmail").value.trim();
+  const password=document.getElementById("authPassword").value;
+  if(!email||password.length<6){
+    alert("Enter a valid email and a password of at least 6 characters.");
+    return;
+  }
+  const {data,error}=await db.auth.signUp({email,password});
+  if(error){
+    alert("Account creation failed: "+error.message);
+    return;
+  }
+  await refreshAuthUI();
+  alert(data?.session?"Account created and signed in.":"Account created. Check your email if confirmation is required.");
+}
+
+async function handleSignOut(){
+  const {error}=await db.auth.signOut();
+  if(error){
+    alert("Could not sign out. Please try again.");
+    return;
+  }
+  await refreshAuthUI();
+  alert("You have been signed out.");
+}
 
 function show(id){
 
@@ -729,6 +807,7 @@ Open council website →
 
 `).join("");
 
+refreshAuthUI();
 loadReports();
 
 try{
