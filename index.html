@@ -135,6 +135,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 </label>
 
 <div class="small">Reports automatically expire after 3 days unless refreshed.</div>
+<div class="small" style="margin-top:6px">Please avoid house numbers, faces, registration plates and private information in photos or descriptions.</div>
 
 <button class="primary" id="submitReportButton" type="submit">Submit community report</button>
 <div id="submitStatus" class="small" aria-live="polite"></div>
@@ -542,6 +543,8 @@ await loadReports();
 
 
 e.target.reset();
+$("photo").value="";
+$("submitStatus").textContent="Report submitted successfully. Opening your recent reports…";
 
 photoData="";
 
