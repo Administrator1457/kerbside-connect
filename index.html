@@ -207,6 +207,10 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <button class="locbtn" type="button" onclick="handleDeleteAccount()" style="color:#9b1c1c">Delete my account</button>
 </div>
 <div class="notice">Your account is optional. Never share your password with anyone, including Kerbside Connect volunteers.</div>
+<div class="section">
+<h2>My Reports</h2>
+<div id="myReports" class="small">Sign in to see the reports you've submitted.</div>
+</div>
 </section>
 
 <section id="terms" class="hidden">
@@ -377,6 +381,59 @@ async function handleSignUp(){
   }
 }
 
+async function loadMyReports(){
+  const el=$("myReports");
+  if(!el)return;
+  if(!currentUser){
+    el.innerHTML="Sign in to see the reports you've submitted.";
+    return;
+  }
+  el.innerHTML='<div class="empty">Loading your reports…</div>';
+  const {data,error}=await db.from("Reports")
+    .select("*")
+    .eq("user_id",currentUser.id)
+    .order("created_at",{ascending:false});
+  if(error){
+    console.error("My reports load error:",error);
+    el.innerHTML='<div class="empty">Could not load your reports right now.</div>';
+    return;
+  }
+  const mine=(data||[]).map(r=>({
+    id:r.id, suburb:r.Suburb||"", street:r.Street||"", desc:r.Description||"",
+    cats:Array.isArray(r.Category)?r.Category:[], date:r.created_at||r.Date||new Date().toISOString(),
+    lat:r.Lat==null?null:Number(r.Lat), lng:r.lng==null?(r.Lng==null?null:Number(r.Lng)):Number(r.lng),
+    photo:r.Photo||"", status:r.status||"active", expiresAt:r.expires_at||null, userId:r.user_id||null
+  }));
+  if(!mine.length){
+    el.innerHTML='<div class="empty">You have not submitted any reports yet.</div>';
+    return;
+  }
+  el.innerHTML=mine.map(r=>{
+    const action=r.status==="active"
+      ? '<button class="filter" type="button" style="margin-top:10px" onclick="removeMyReport('+Number(r.id)+')">🗑️ Remove my report</button>'
+      : '<div class="small" style="margin-top:10px">Status: '+esc(r.status)+'</div>';
+    return card(r)+action;
+  }).join("");
+}
+
+async function removeMyReport(id){
+  if(!currentUser)return;
+  if(!confirm("Remove this report from Kerbside Connect?"))return;
+  const {error}=await db.from("Reports")
+    .update({status:"removed",updated_at:new Date().toISOString()})
+    .eq("id",Number(id))
+    .eq("user_id",currentUser.id);
+  if(error){
+    console.error("Remove own report error:",error);
+    alert("Could not remove your report. Please try again.");
+    return;
+  }
+  reportsCache=reportsCache.filter(r=>String(r.id)!==String(id));
+  renderReports();
+  await loadMyReports();
+  alert("Your report has been removed.");
+}
+
 async function handleSignOut(){
   const {error}=await db.auth.signOut();
   if(error){
@@ -476,6 +533,7 @@ renderReports();
 }
 
 if(id==="saved")renderSaved();
+if(id==="account")loadMyReports();
 if(id==="moderation")loadModeration();
 
 if(id==="mapview"){
@@ -1108,6 +1166,7 @@ db.auth.onAuthStateChange((_event,session)=>{
   currentUser=session?.user||null;
   renderAuthIdentity(currentUser);
   refreshModeratorUI();
+  loadMyReports();
 });
 loadReports();
 updateDescriptionCount();
