@@ -145,6 +145,8 @@ textarea{min-height:90px}
 
 <div id="reports"></div>
 
+</section>
+
 <section id="councils" class="hidden">
 <button class="back" onclick="show('home')">← Home</button>
 <h2>Council information</h2>
@@ -458,24 +460,34 @@ const a=search
     )
   : all;
 
-document.getElementById("reports").innerHTML=
+const visible = currentFilter==="All"
+  ? a
+  : a.filter(r=>r.cats.includes(currentFilter));
 
-a.length
-?a.map(card).join("")
-:'<div class="empty">No current community reports.</div>';
+const reportsEl=document.getElementById("reports");
+if(reportsEl){
+  reportsEl.innerHTML=
+    visible.length
+    ?visible.map(card).join("")
+    :'<div class="empty">No matching community reports.</div>';
+}
 
-document.getElementById("latest").innerHTML=
+const latestEl=document.getElementById("latest");
+if(latestEl){
+  latestEl.innerHTML=
+    visible.length
+    ?card(visible[0])
+    :'<div class="card empty">Be the first to report a clean-up.</div>';
+}
 
-a.length
-?card(a[0])
-:'<div class="card empty">Be the first to report a clean-up.</div>';
-
-document.getElementById("mapReports").innerHTML=
-
-a.length
-?"<h3>Current reported areas</h3>"+
-a.slice(0,10).map(card).join("")
-:'<div class="empty">No current reports yet.</div>';
+const mapReportsEl=document.getElementById("mapReports");
+if(mapReportsEl){
+  mapReportsEl.innerHTML=
+    visible.length
+    ?"<h3>Current reported areas</h3>"+
+      visible.slice(0,10).map(card).join("")
+    :'<div class="empty">No current reports yet.</div>';
+}
 
 buildFilters(a);
 
