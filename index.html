@@ -303,7 +303,7 @@ const $=id=>document.getElementById(id);
 const SAVED_KEY="kerbside-connect-saved";
 function getSavedIds(){try{return JSON.parse(localStorage.getItem(SAVED_KEY)||"[]").map(String)}catch(e){return []}}
 function isSaved(id){return getSavedIds().includes(String(id))}
-function toggleSaved(id){const ids=getSavedIds();const key=String(id);const next=ids.includes(key)?ids.filter(x=>x!==key):[...ids,key];localStorage.setItem(SAVED_KEY,JSON.stringify(next));renderReports();alert(next.includes(key)?"❤️ Report saved on this device.":"Report removed from saved.");}
+function toggleSaved(id){const ids=getSavedIds();const key=String(id);const next=ids.includes(key)?ids.filter(x=>x!==key):[...ids,key];localStorage.setItem(SAVED_KEY,JSON.stringify(next));renderReports();renderSaved();alert(next.includes(key)?"❤️ Report saved on this device.":"Report removed from saved.");}
 function renderSaved(){const el=$("savedReports");if(!el)return;const ids=getSavedIds();const saved=getReports().filter(r=>ids.includes(String(r.id)));el.innerHTML=saved.length?saved.map(card).join(""):'<div class="empty">No saved reports yet.<br>Tap ❤️ Save on any report you want to keep.</div>'}
 
 const councils=[
@@ -809,12 +809,40 @@ img.src=reader.result;
 reader.readAsDataURL(f);
 }
 
+function timeSince(value){
+  const t=new Date(value).getTime(), diff=Math.max(0,Date.now()-t), mins=Math.floor(diff/60000);
+  if(mins<1)return "just now";
+  if(mins<60)return mins+" min ago";
+  const hrs=Math.floor(mins/60);
+  if(hrs<24)return hrs+" hr"+(hrs===1?"":"s")+" ago";
+  const days=Math.floor(hrs/24);
+  return days+" day"+(days===1?"":"s")+" ago";
+}
+function reportBadges(r){
+  const out=[];
+  const age=Date.now()-new Date(r.date).getTime();
+  if(age<=6*60*60*1000)out.push('<span class="badge fresh">✨ FRESH</span>');
+  const exp=r.expiresAt?new Date(r.expiresAt).getTime():null;
+  if(exp&&exp>Date.now()&&exp-Date.now()<=24*60*60*1000)out.push('<span class="badge soon">⏳ EXPIRING SOON</span>');
+  if(exp&&exp<=Date.now()&&r.status==="active")out.push('<span class="badge expired">EXPIRED</span>');
+  if(r.status==="removed")out.push('<span class="badge removed">REMOVED</span>');
+  if(r.updatedAt&&new Date(r.updatedAt).getTime()>new Date(r.date).getTime()+60*1000)out.push('<span class="badge">🔄 RECENTLY REFRESHED</span>');
+  return out.join("");
+}
+function helpfulKey(id){return "kerbside-helpful-"+id}
+function hasHelped(id){return localStorage.getItem(helpfulKey(id))==="1"}
+function toggleHelpful(id){
+  const next=!hasHelped(id);
+  if(next)localStorage.setItem(helpfulKey(id),"1");else localStorage.removeItem(helpfulKey(id));
+  renderReports(); renderSaved();
+  alert(next?"💚 Thanks!":"Thanks removed from this device.");
+}
 function card(r){
 
 const safePhoto=safePhotoUrl(r.photo);
 const img=safePhoto
 
-?'<img src="'+safePhoto+'" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-top:8px" alt="Community report photo">'
+?'<img loading="lazy" decoding="async" src="'+safePhoto+'" class="photo-card" alt="Community report photo">'
 
 :"";
 
@@ -824,9 +852,8 @@ return `
 
 <div class="report-head"><b>📍 ${esc(r.suburb)}</b><span class="verified">COMMUNITY</span></div>
 
-<div class="small">
-Reported ${new Date(r.date).toLocaleString()}
-</div>
+<div class="report-badges">${reportBadges(r)}</div>
+<div class="small">Reported <b>${timeSince(r.date)}</b> · ${new Date(r.date).toLocaleString()}</div>
 
 ${r.street?`<div>${esc(r.street)}</div>`:""}
 
@@ -862,6 +889,8 @@ ${img}
   style="margin-top:10px">
   🚩 Flag report
 </button>
+
+<button class="filter" style="margin-top:10px;width:100%" type="button" onclick="toggleHelpful(${r.id})">${hasHelped(r.id)?"💚 Thanks!":"👍 Helpful"}</button>
 
 </div>
 
