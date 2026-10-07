@@ -186,7 +186,7 @@ button:disabled{opacity:.6;cursor:not-allowed}
 <section id="privacy" class="hidden">
 <button class="back" onclick="show('home')">← Home</button>
 <h2>Privacy & safety</h2>
-<div class="card report" data-report-id="${escAttr(String(r.id))}"><b>🔒 Your privacy matters</b><p class="small">Location is optional. When you choose to attach your location to a report, Kerbside Connect rounds the coordinates before sending them to the database. Do not include house numbers, faces, vehicle registration details or other private information in photos or descriptions.</p></div>
+<div class="card report"><b>🔒 Your privacy matters</b><p class="small">Location is optional. When you choose to attach your location to a report, Kerbside Connect rounds the coordinates before sending them to the database. Do not include house numbers, faces, vehicle registration details or other private information in photos or descriptions.</p></div>
 <div class="card report"><b>👤 Accounts</b><p class="small">An account is optional. Your email is used by Supabase authentication. Never share your password.</p></div>
 <div class="card report"><b>📸 Photos</b><p class="small">Only upload photos you are comfortable sharing with the Kerbside Connect community. Photos are currently stored with reports and may be visible to other app users.</p></div>
 </section>
@@ -551,7 +551,7 @@ const img=r.photo
 
 return `
 
-<div class="card report">
+<div class="card report" data-report-id="${escAttr(String(r.id))}">
 
 <div class="report-head"><b>📍 ${esc(r.suburb)}</b><span class="verified">COMMUNITY</span></div>
 
@@ -599,7 +599,7 @@ ${img}
 `;
 
   }
-async async function shareReport(id){
+async function shareReport(id){
   const r=reportsCache.find(x=>String(x.id)===String(id));
   if(!r)return;
   const url=window.location.origin+window.location.pathname+"#report="+encodeURIComponent(String(id));
