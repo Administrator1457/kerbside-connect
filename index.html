@@ -72,6 +72,7 @@ button:disabled{opacity:.6;cursor:not-allowed}
 <button class="btn" onclick="show('recent')"><span>🕐</span>Recent Reports</button>
 <button class="btn" onclick="show('councils')"><span>🏛️</span>Council Information</button>
 <button class="btn" onclick="show('account')"><span>👤</span>My Account</button>
+<button class="btn" id="installButton" onclick="installApp()" style="display:none"><span>📲</span>Install App</button>
 </div>
 
 <div class="section">
@@ -174,6 +175,21 @@ button:disabled{opacity:.6;cursor:not-allowed}
 <div class="notice">Your account is optional. Never share your password with anyone, including Kerbside Connect volunteers.</div>
 </section>
 
+<section id="privacy" class="hidden">
+<button class="back" onclick="show('home')">← Home</button>
+<h2>Privacy & safety</h2>
+<div class="card report"><b>🔒 Your privacy matters</b><p class="small">Location is optional. When you choose to attach your location to a report, Kerbside Connect rounds the coordinates before sending them to the database. Do not include house numbers, faces, vehicle registration details or other private information in photos or descriptions.</p></div>
+<div class="card report"><b>👤 Accounts</b><p class="small">An account is optional. Your email is used by Supabase authentication. Never share your password.</p></div>
+<div class="card report"><b>📸 Photos</b><p class="small">Only upload photos you are comfortable sharing with the Kerbside Connect community. Photos are currently stored with reports and may be visible to other app users.</p></div>
+</section>
+
+<section id="guidelines" class="hidden">
+<button class="back" onclick="show('home')">← Home</button>
+<h2>Community guidelines</h2>
+<div class="card report"><b>♻️ Keep reports useful</b><p class="small">Only report genuine kerbside clean-up items. Respect private property, pedestrians, traffic and council restrictions. Do not post dangerous, illegal, abusive or personally identifying content.</p></div>
+<div class="card report"><b>🚩 See something wrong?</b><p class="small">Use “Flag report” on the report card and explain the problem. Reports are community submissions and are not council confirmations.</p></div>
+</section>
+
 <section id="councils" class="hidden">
 <button class="back" onclick="show('home')">← Home</button>
 <h2>Council information</h2>
@@ -181,7 +197,9 @@ button:disabled{opacity:.6;cursor:not-allowed}
 </section>
 
 <div class="footer">
-Kerbside Connect is a community project. Council information should always be checked against the relevant council's official website.
+<button class="back" type="button" onclick="show('privacy')">Privacy & safety</button>
+<button class="back" type="button" onclick="show('guidelines')">Community guidelines</button>
+<br>Kerbside Connect is a community project. Council information should always be checked against the relevant council's official website.
 </div>
 
 </main>
@@ -212,6 +230,7 @@ let currentFilter="All";
 let photoData="";
 let authMode="signin";
 let isLoadingReports=false;
+let deferredInstallPrompt=null;
 
 const councils=[
 ["Campbelltown City Council","https://www.campbelltown.nsw.gov.au/Services-and-Facilities/Waste-and-Recycling/Kerbside-clean-up"],
@@ -875,6 +894,21 @@ Open council website →
 
 refreshAuthUI();
 loadReports();
+
+window.addEventListener("beforeinstallprompt",event=>{
+  event.preventDefault();
+  deferredInstallPrompt=event;
+  const btn=document.getElementById("installButton");
+  if(btn)btn.style.display="block";
+});
+async function installApp(){
+  if(!deferredInstallPrompt){alert("Your browser does not currently offer an install prompt. You can also use your browser menu and choose “Add to Home screen”.");return;}
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt=null;
+  const btn=document.getElementById("installButton");
+  if(btn)btn.style.display="none";
+}
 
 function updateOfflineUI(){
   const el=document.getElementById("offlineBanner");
