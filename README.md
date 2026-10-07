@@ -82,3 +82,8 @@ See `SECURITY.md` for security practices, vulnerability-reporting guidance and p
 ## Roadmap
 
 See `SUPABASE_SCHEMA.md` for the proposed backend structure required for ownership, moderation, report status, expiry, and scalable image storage.
+
+
+## App metadata
+
+The public page includes a concise description and Open Graph metadata so shared links can identify Kerbside Connect clearly. A dedicated social-preview image can be added later without changing report functionality.
