@@ -52,6 +52,25 @@ Do not add guessed columns or policies to the live database. Apply the backend c
 
 The app can be hosted as a static site. GitHub Pages, another static host, or a compatible web host can serve the repository. HTTPS is recommended because browser geolocation and PWA features require a secure context in normal deployment.
 
+## Production launch checklist
+
+Before public launch:
+
+- [ ] Confirm the live `Reports` and `report_flags` schemas in Supabase
+- [ ] Enable and verify Row Level Security policies
+- [ ] Add report ownership and server-side expiry
+- [ ] Move report photos from database base64 data to Supabase Storage
+- [ ] Add server-side upload/type/size validation
+- [ ] Add moderation roles and a private moderation workflow
+- [ ] Add server-side anti-spam/rate limiting
+- [ ] Verify Realtime is enabled for `Reports`
+- [ ] Configure the production Auth redirect URL
+- [ ] Verify official council links
+- [ ] Add production PWA icons and test Android/iOS installation
+- [ ] Test offline, low-connectivity, location-denied and permission flows
+- [ ] Test accessibility and keyboard navigation
+- [ ] Run a final privacy/safety review before public release
+
 ## Roadmap
 
 See `SUPABASE_SCHEMA.md` for the proposed backend structure required for ownership, moderation, report status, expiry, and scalable image storage.
