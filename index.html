@@ -279,6 +279,21 @@ const cats=[
 )
 ].map(x=>x.value);
 
+if(!suburb.value.trim()){
+alert("Please enter the suburb.");
+return;
+}
+
+if(suburb.value.trim().length>80){
+alert("Please keep the suburb name under 80 characters.");
+return;
+}
+
+if(street.value.trim().length>160){
+alert("Please keep the street/area under 160 characters.");
+return;
+}
+
 if(!cats.length){
 
 alert("Please select at least one category.");
@@ -427,6 +442,10 @@ const reason=prompt(
 );
 
 if(!reason||!reason.trim())return;
+if(reason.trim().length>300){
+alert("Please keep the flag reason under 300 characters.");
+return;
+}
 
 const {error}=await db
   .from("report_flags")
@@ -712,7 +731,17 @@ Open council website →
 
 loadReports();
 
-// Refresh community reports periodically so different phones see new submissions.
+try{
+  db.channel("kerbside-live-reports")
+    .on("postgres_changes",{event:"*",schema:"public",table:"Reports"},()=>loadReports())
+    .subscribe(status=>{
+      if(status==="CHANNEL_ERROR") console.warn("Live report updates unavailable; 60-second refresh remains active.");
+    });
+}catch(e){
+  console.warn("Live report channel unavailable:",e);
+}
+
+// Refresh community reports periodically as a fallback.
 setInterval(loadReports, 60000);
 
 </script>
