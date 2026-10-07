@@ -415,11 +415,33 @@ async function loadMyReports(){
     return;
   }
   el.innerHTML=mine.map(r=>{
-    const action=r.status==="active"
-      ? '<button class="filter" type="button" style="margin-top:10px" onclick="removeMyReport('+Number(r.id)+')">🗑️ Remove my report</button>'
-      : '<div class="small" style="margin-top:10px">Status: '+esc(r.status)+'</div>';
+    const expiry=r.expiresAt?new Date(r.expiresAt):null;
+    const expired=expiry && expiry.getTime()<=Date.now();
+    const action=(r.status==="active" && !expired)
+      ? '<div class="small" style="margin-top:10px">Expires '+expiry.toLocaleString()+'</div><button class="filter" type="button" style="margin-top:10px" onclick="refreshMyReport('+Number(r.id)+')">🔄 Refresh for 3 more days</button><button class="filter" type="button" style="margin-top:10px" onclick="removeMyReport('+Number(r.id)+')">🗑️ Remove my report</button>'
+      : (r.status==="active" && expired)
+        ? '<div class="small" style="margin-top:10px">This report has expired.</div><button class="filter" type="button" style="margin-top:10px" onclick="refreshMyReport('+Number(r.id)+')">🔄 Refresh report</button><button class="filter" type="button" style="margin-top:10px" onclick="removeMyReport('+Number(r.id)+')">🗑️ Remove my report</button>'
+        : '<div class="small" style="margin-top:10px">Status: '+esc(r.status)+'</div>';
     return card(r)+action;
   }).join("");
+}
+
+async function refreshMyReport(id){
+  if(!currentUser)return;
+  if(!confirm("Refresh this report for another 3 days?"))return;
+  const nextExpiry=new Date(Date.now()+3*24*60*60*1000).toISOString();
+  const {error}=await db.from("Reports")
+    .update({status:"active",expires_at:nextExpiry,updated_at:new Date().toISOString()})
+    .eq("id",Number(id))
+    .eq("user_id",currentUser.id);
+  if(error){
+    console.error("Refresh own report error:",error);
+    alert("Could not refresh your report. Please try again.");
+    return;
+  }
+  await loadReports();
+  await loadMyReports();
+  alert("✅ Your report has been refreshed for another 3 days.");
 }
 
 async function removeMyReport(id){
