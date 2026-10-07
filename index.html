@@ -73,6 +73,7 @@ button:disabled{opacity:.6;cursor:not-allowed}
 <button class="btn" onclick="show('councils')"><span>🏛️</span>Council Information</button>
 <button class="btn" onclick="show('account')"><span>👤</span>My Account</button>
 <button class="btn" id="installButton" onclick="installApp()" style="display:none"><span>📲</span>Install App</button>
+<button class="btn" onclick="show('saved')"><span>❤️</span>Saved Reports</button>
 </div>
 
 <div class="section">
@@ -137,6 +138,13 @@ button:disabled{opacity:.6;cursor:not-allowed}
 <div id="submitStatus" class="small" aria-live="polite"></div>
 
 </form>
+</section>
+
+<section id="saved" class="hidden">
+<button class="back" onclick="show('home')">← Home</button>
+<h2>Saved reports</h2>
+<div class="small">Saved reports stay on this device. They are not shared with your account.</div>
+<div id="savedReports"></div>
 </section>
 
 <section id="recent" class="hidden">
@@ -232,6 +240,11 @@ let authMode="signin";
 let isLoadingReports=false;
 let deferredInstallPrompt=null;
 const $=id=>document.getElementById(id);
+const SAVED_KEY="kerbside-connect-saved";
+function getSavedIds(){try{return JSON.parse(localStorage.getItem(SAVED_KEY)||"[]").map(String)}catch(e){return []}}
+function isSaved(id){return getSavedIds().includes(String(id))}
+function toggleSaved(id){const ids=getSavedIds();const key=String(id);const next=ids.includes(key)?ids.filter(x=>x!==key):[...ids,key];localStorage.setItem(SAVED_KEY,JSON.stringify(next));renderReports();alert(next.includes(key)?"❤️ Report saved on this device.":"Report removed from saved.");}
+function renderSaved(){const el=$("savedReports");if(!el)return;const ids=getSavedIds();const saved=getReports().filter(r=>ids.includes(String(r.id)));el.innerHTML=saved.length?saved.map(card).join(""):'<div class="empty">No saved reports yet.<br>Tap ❤️ Save on any report you want to keep.</div>'}
 
 const councils=[
 ["Campbelltown City Council","https://www.campbelltown.nsw.gov.au/Services-and-Facilities/Waste-and-Recycling/Kerbside-clean-up"],
@@ -313,9 +326,11 @@ s=>s.classList.add("hidden")
 
 document.getElementById(id).classList.remove("hidden");
 
-if(id==="recent"||id==="home"||id==="mapview"){
+if(id==="recent"||id==="home"||id==="mapview"||id==="saved"){
 renderReports();
 }
+
+if(id==="saved")renderSaved();
 
 if(id==="mapview"){
 
@@ -562,6 +577,12 @@ ${img}
 
 <button class="filter" style="margin-top:10px"
   type="button"
+  onclick="toggleSaved(${r.id})">
+  ${isSaved(r.id)?"💚 Saved":"❤️ Save"}
+</button>
+
+<button class="filter" style="margin-top:10px"
+  type="button"
   onclick="shareReport(${r.id})">
   📤 Share
 </button>
@@ -692,6 +713,7 @@ if(mapReportsEl){
 }
 
 buildFilters(a);
+renderSaved();
 
 if(map)renderMap();
 
