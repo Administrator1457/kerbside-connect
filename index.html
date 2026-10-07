@@ -93,6 +93,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <div class="card"><b>How it works</b><p class="small">Find a report → check the map → reuse what you need. Reports are community submissions, not council confirmations.</p></div>
 </div>
 
+<div class="section"><div class="card"><b>♻️ Community activity</b><div id="communityStats" class="small" style="margin-top:7px">Loading community activity…</div></div></div>
 <div class="section">
 <h2>Latest reports near you</h2>
 <div id="latest"></div>
@@ -626,7 +627,7 @@ async function loadReports(){
 if(isLoadingReports)return;
  isLoadingReports=true;
  const status=document.getElementById("reports");
- if(status && !reportsCache.length) status.innerHTML='<div class="empty">Loading community reports…</div>';
+ if(status && !reportsCache.length) status.innerHTML='<div class="loading"><span class="spinner"></span>Loading community reports…</div>';
 
 const {data,error}=await db
 .from("Reports")
@@ -1002,6 +1003,13 @@ if(error||!data?.ok){
 
 alert("🚩 Report flagged. Thanks for helping keep Kerbside Connect useful.");
   }
+function updateCommunityStats(){
+  const el=$("communityStats");if(!el)return;
+  const all=getReports(),week=Date.now()-7*24*60*60*1000;
+  const recent=all.filter(r=>new Date(r.date).getTime()>=week).length;
+  const cats=new Set(all.flatMap(r=>r.cats)).size;
+  el.textContent=all.length+" active community reports • "+recent+" added in the last 7 days • "+cats+" item categories shared";
+}
 function renderReports(){
 
 const search=(document.getElementById("searchReports")?.value||"").trim().toLowerCase();
@@ -1058,6 +1066,7 @@ if(mapReportsEl){
 
 buildFilters(a);
 renderSaved();
+updateCommunityStats();
 
 if(map)renderMap();
 
