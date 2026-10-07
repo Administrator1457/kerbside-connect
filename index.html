@@ -185,6 +185,15 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <div class="notice">Your account is optional. Never share your password with anyone, including Kerbside Connect volunteers.</div>
 </section>
 
+<section id="terms" class="hidden">
+<button class="back" onclick="show('home')">← Home</button>
+<h2>Terms of use</h2>
+<div class="card report"><b>Community information only</b><p class="small">Kerbside Connect provides community-submitted information about items seen during kerbside clean-ups. Reports are not guarantees that an item will still be available and are not official council notices.</p></div>
+<div class="card report"><b>Use safely and lawfully</b><p class="small">Do not enter private property without permission, obstruct roads or footpaths, or collect items that appear unsafe, hazardous or restricted. Follow all applicable laws and council requirements.</p></div>
+<div class="card report"><b>Report responsibly</b><p class="small">Only submit information you believe is genuine and avoid personal information in descriptions and photos. Kerbside Connect may need to remove reports that are inaccurate, unsafe, abusive or inappropriate.</p></div>
+<div class="card report"><b>No guarantee</b><p class="small">The app is provided as a community service. Availability, map accuracy, council rules and reported items can change without notice. Check relevant official sources when safety or legal requirements matter.</p></div>
+</section>
+
 <section id="privacy" class="hidden">
 <button class="back" onclick="show('home')">← Home</button>
 <h2>Privacy & safety</h2>
@@ -208,6 +217,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 
 <div class="footer">
 <button class="back" type="button" onclick="show('privacy')">Privacy & safety</button>
+<button class="back" type="button" onclick="show('terms')">Terms of use</button>
 <button class="back" type="button" onclick="show('guidelines')">Community guidelines</button>
 <br>Kerbside Connect is a community project. Council information should always be checked against the relevant council's official website.
 </div>
@@ -330,7 +340,7 @@ s=>s.classList.add("hidden")
 document.getElementById(id).classList.remove("hidden");
 document.getElementById("mainContent")?.focus({preventScroll:true});
 
-if(id==="recent"||id==="home"||id==="mapview"||id==="saved"){
+if(id==="recent"||id==="home"||id==="mapview"||id==="saved"||id==="terms"){
 renderReports();
 }
 
