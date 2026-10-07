@@ -445,7 +445,7 @@ if(submitButton)submitButton.disabled=false; return;
 
 const recentSimilar=reportsCache.some(r=>{
   const sameSuburb=r.suburb.trim().toLowerCase()===$("suburb").value.trim().toLowerCase();
-  const sameStreet=(r.street||"").trim().toLowerCase()===(street.value||"").trim().toLowerCase();
+  const sameStreet=(r.street||"").trim().toLowerCase()===($("street").value||"").trim().toLowerCase();
   const overlap=r.cats.some(x=>cats.includes(x));
   return sameSuburb&&sameStreet&&overlap;
 });
@@ -543,9 +543,10 @@ reader.readAsDataURL(f);
 
 function card(r){
 
-const img=r.photo
+const safePhoto=safePhotoUrl(r.photo);
+const img=safePhoto
 
-?'<img src="'+r.photo+'" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-top:8px" alt="Community report photo">'
+?'<img src="'+safePhoto+'" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-top:8px" alt="Community report photo">'
 
 :"";
 
@@ -897,6 +898,8 @@ return String(s||"")
 }[c]));
 
 }
+
+function safePhotoUrl(value){const v=String(value||"");return /^data:image\/(png|jpe?g|webp|gif);base64,/i.test(v)?v:""}
 
 function escAttr(s){
 
