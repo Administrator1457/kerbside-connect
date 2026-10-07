@@ -544,12 +544,13 @@ async function loadModeration(){
   if(error){el.innerHTML='<div class="empty">Could not load moderation records.</div>';console.error(error);return;}
   if(!flags?.length){el.innerHTML='<div class="card empty">No open flags. 🎉</div>';return;}
   const ids=[...new Set(flags.map(f=>f.report_id))];
+  const flagCounts=flags.reduce((m,f)=>{m[f.report_id]=(m[f.report_id]||0)+1;return m;},{});
   const {data:reports}=await db.from("Reports").select("*").in("id",ids);
   const byId=new Map((reports||[]).map(r=>[String(r.id),r]));
   el.innerHTML=flags.map(flag=>{
     const r=byId.get(String(flag.report_id));
     return `<div class="card report">
-      <div class="report-head"><b>🚩 Report #${esc(flag.report_id)}</b><span class="verified">${esc(flag.status)}</span></div>
+      <div class="report-head"><b>🚩 Report #${esc(flag.report_id)}</b><span class="verified">${flagCounts[flag.report_id]||1} flag${(flagCounts[flag.report_id]||1)===1?"":"s"}</span></div>
       <div class="small">Flagged ${new Date(flag.created_at).toLocaleString()}</div>
       <p><b>Reason:</b> ${esc(flag.reason||"No reason supplied")}</p>
       ${r?card(r):'<div class="notice">The original report is no longer visible.</div>'}
