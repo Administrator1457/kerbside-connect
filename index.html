@@ -48,6 +48,8 @@ textarea{min-height:90px}
 .empty{color:var(--muted);text-align:center;padding:25px}
 .footer{font-size:12px;color:var(--muted);padding:22px 0;text-align:center}
 button:disabled{opacity:.6;cursor:not-allowed}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #5aa67e;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 [aria-live]{min-height:18px}
 </style>
 </head>
@@ -62,18 +64,18 @@ button:disabled{opacity:.6;cursor:not-allowed}
 </div>
 </header>
 
-<main class="wrap">
+<main class="wrap" id="mainContent" tabindex="-1">
 
 <section id="home">
 <div class="hero"><h2>What's on the kerb near you?</h2><p>See community clean-up reports, find useful items and help your neighbours reuse before it goes to landfill.</p><span class="status">♻️ Community powered</span></div>
 <div class="grid">
-<button class="btn" onclick="show('mapview')"><span>🗺️</span>Find Clean-Ups</button>
-<button class="btn" onclick="show('report')"><span>➕</span>Report a Clean-Up</button>
-<button class="btn" onclick="show('recent')"><span>🕐</span>Recent Reports</button>
-<button class="btn" onclick="show('councils')"><span>🏛️</span>Council Information</button>
-<button class="btn" onclick="show('account')"><span>👤</span>My Account</button>
-<button class="btn" id="installButton" onclick="installApp()" style="display:none"><span>📲</span>Install App</button>
-<button class="btn" onclick="show('saved')"><span>❤️</span>Saved Reports</button>
+<button class="btn" type="button" aria-label="Find clean-ups near you" onclick="show('mapview')"><span>🗺️</span>Find Clean-Ups</button>
+<button class="btn" type="button" aria-label="Report a kerbside clean-up" onclick="show('report')"><span>➕</span>Report a Clean-Up</button>
+<button class="btn" type="button" aria-label="View recent community reports" onclick="show('recent')"><span>🕐</span>Recent Reports</button>
+<button class="btn" type="button" aria-label="View council information" onclick="show('councils')"><span>🏛️</span>Council Information</button>
+<button class="btn" type="button" aria-label="Open my account" onclick="show('account')"><span>👤</span>My Account</button>
+<button class="btn" type="button" id="installButton" aria-label="Install Kerbside Connect" onclick="installApp()" style="display:none"><span>📲</span>Install App</button>
+<button class="btn" type="button" aria-label="View saved reports" onclick="show('saved')"><span>❤️</span>Saved Reports</button>
 </div>
 
 <div class="section">
@@ -320,11 +322,13 @@ async function handleSignOut(){
 
 function show(id){
 
+if(!document.getElementById(id))return;
 document.querySelectorAll("section").forEach(
 s=>s.classList.add("hidden")
 );
 
 document.getElementById(id).classList.remove("hidden");
+document.getElementById("mainContent")?.focus({preventScroll:true});
 
 if(id==="recent"||id==="home"||id==="mapview"||id==="saved"){
 renderReports();
