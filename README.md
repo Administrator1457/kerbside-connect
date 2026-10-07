@@ -87,3 +87,8 @@ See `SUPABASE_SCHEMA.md` for the proposed backend structure required for ownersh
 ## App metadata
 
 The public page includes a concise description and Open Graph metadata so shared links can identify Kerbside Connect clearly. A dedicated social-preview image can be added later without changing report functionality.
+
+
+## PWA updates
+
+The service worker uses a versioned app-shell cache. Updating the cache version allows changed static assets to replace older cached releases while retaining an offline fallback for the app shell.
