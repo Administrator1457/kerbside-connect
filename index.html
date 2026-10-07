@@ -250,6 +250,7 @@ let currentFilter="All";
 let photoData="";
 let authMode="signin";
 let isLoadingReports=false;
+let lastReportsError="";
 let deferredInstallPrompt=null;
 const $=id=>document.getElementById(id);
 const SAVED_KEY="kerbside-connect-saved";
@@ -385,12 +386,14 @@ const {data,error}=await db
 .order("created_at",{ascending:false});
 
 if(error){
+  lastReportsError=error.message||"Unknown error";
   console.error("Supabase load error:",error);
-  if(status) status.innerHTML='<div class="empty">Could not load reports right now.<br><button class="filter" type="button" onclick="loadReports()" style="margin-top:10px">↻ Try again</button></div>';
+  if(status) status.innerHTML='<div class="empty">Could not load community reports right now.<br><span class="small">Check your connection and try again.</span><br><button class="filter" type="button" onclick="loadReports()" style="margin-top:10px">↻ Try again</button></div>';
   isLoadingReports=false;
   return;
 }
 
+lastReportsError="";
 reportsCache=(data||[]).map(r=>({
 
 id:r.id,
