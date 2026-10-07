@@ -996,6 +996,7 @@ function updateOfflineUI(){
 }
 window.addEventListener("online",updateOfflineUI);
 window.addEventListener("offline",updateOfflineUI);
+window.addEventListener("pageshow",updateOfflineUI);
 updateOfflineUI();
 
 try{
