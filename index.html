@@ -253,7 +253,6 @@ let userPos=null;
 let userLocationAccuracy=350;
 let currentFilter="All";
 let photoData="";
-let authMode="signin";
 let isLoadingReports=false;
 let lastReportsError="";
 let deferredInstallPrompt=null;
@@ -520,7 +519,7 @@ Date:new Date().toISOString().slice(0,10)
 
 };
 
-const {data:inserted,error}=await db
+const {error}=await db
 .from("Reports")
 .insert(payload)
 .select()
