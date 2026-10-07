@@ -1,0 +1,47 @@
+name: Kerbside Connect quality checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Validate JSON files
+        run: |
+          python - <<'PY'
+          import json
+          for path in ["manifest.webmanifest", "package.json"]:
+              with open(path, encoding="utf-8") as f:
+                  json.load(f)
+              print("valid:", path)
+          PY
+      - name: Check frontend JavaScript syntax
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html=Path("index.html").read_text(encoding="utf-8")
+          scripts=re.findall(r"<script(?:\s[^>]*)?>(.*?)</script>", html, re.S|re.I)
+          Path("/tmp/app.js").write_text("\n".join(scripts),encoding="utf-8")
+          print("Extracted",len(scripts),"script blocks")
+          PY
+          node --check /tmp/app.js
+      - name: Check required app files
+        run: |
+          test -f index.html
+          test -f manifest.webmanifest
+          test -f sw.js
+          test -f SECURITY.md
+          test -f SUPABASE_SCHEMA.md
+          test -f CONTRIBUTING.md
+          echo "Required files present"
