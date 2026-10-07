@@ -261,6 +261,7 @@ let userPos=null;
 let userLocationAccuracy=350;
 let currentFilter="All";
 let photoData="";
+let photoFile=null;
 let isLoadingReports=false;
 let lastReportsError="";
 let deferredInstallPrompt=null;
@@ -394,9 +395,7 @@ function getReports(){
 
 const now=Date.now();
 
-return reportsCache.filter(
-r=>now-new Date(r.date).getTime()<EXPIRY
-);
+return reportsCache.filter(r=>r.status==="active" && (!r.expiresAt || new Date(r.expiresAt).getTime()>now));
 
 }
 
@@ -439,13 +438,11 @@ lat:r.Lat==null?null:Number(r.Lat),
 
 lng:r.lng==null?(r.Lng==null?null:Number(r.Lng)):Number(r.lng),
 
-photo:r.Photo||""
-
-})).filter(
-
-r=>Date.now()-new Date(r.date).getTime()<EXPIRY
-
-);
+photo:r.Photo||"",
+status:r.status||"active",
+expiresAt:r.expires_at||null,
+userId:r.user_id||null
+}));
 
 renderReports();
  isLoadingReports=false;
@@ -507,43 +504,28 @@ if(recentSimilar && !confirm("A similar report already exists for this area. Sub
 }
 if(submitStatus)submitStatus.textContent="Saving your community report…";
 
-const payload={
+const formData=new FormData();
+formData.append("suburb",suburbValue);
+formData.append("street",streetValue);
+formData.append("categories",JSON.stringify(cats));
+formData.append("lat",userPos?Number(userPos.lat.toFixed(3)).toString():"");
+formData.append("lng",userPos?Number(userPos.lng.toFixed(3)).toString():"");
+formData.append("description",descriptionValue);
+if(photoFile)formData.append("image",photoFile,photoFile.name||"report.jpg");
 
-Suburb:suburbValue,
-
-Street:$("street").value.trim()||null,
-
-Category:cats,
-
-Lat:userPos?Number(userPos.lat.toFixed(3)):null,
-
-lng:userPos?Number(userPos.lng.toFixed(3)):null,
-
-Description:descriptionValue||null,
-
-Photo:photoData||null,
-
-Date:new Date().toISOString().slice(0,10)
-
-};
-
-const {error}=await db
-.from("Reports")
-.insert(payload)
-.select()
-.maybeSingle();
-
+const {data,error}=await db.functions.invoke("submit-report",{body:formData});
 if(error){
-
-console.error("Supabase insert error:",error);
-
-alert(
-"Sorry, the report could not be saved. Please try again."
-);
-if(submitButton)submitButton.disabled=false;
-if(submitStatus)submitStatus.textContent="";
-return;
-
+  console.error("submit-report error:",error);
+  alert("Sorry, the report could not be saved. Please try again.");
+  if(submitButton)submitButton.disabled=false;
+  if(submitStatus)submitStatus.textContent="";
+  return;
+}
+if(!data?.ok){
+  alert(data?.error||"Sorry, the report could not be saved. Please try again.");
+  if(submitButton)submitButton.disabled=false;
+  if(submitStatus)submitStatus.textContent="";
+  return;
 }
 
 await loadReports();
@@ -555,6 +537,7 @@ $("photo").value="";
 $("submitStatus").textContent="Report submitted successfully. Opening your recent reports…";
 
 photoData="";
+photoFile=null;
 
 $("photoPreview").style.display="none";
 
@@ -600,6 +583,9 @@ canvas.height=Math.max(1,Math.round(img.height*scale));
 const ctx=canvas.getContext("2d");
 ctx.drawImage(img,0,0,canvas.width,canvas.height);
 photoData=canvas.toDataURL("image/jpeg",0.78);
+canvas.toBlob(blob=>{
+  photoFile=blob?new File([blob],"report.jpg",{type:"image/jpeg"}):null;
+},"image/jpeg",0.78);
 $("photoPreview").src=photoData;
 $("photoPreview").style.display="block";
 };
@@ -736,16 +722,10 @@ alert("Please keep the flag reason under 300 characters.");
 return;
 }
 
-const {error}=await db
-  .from("report_flags")
-  .insert({
-    report_id:id,
-    reason:reason.trim()
-  });
-
-if(error){
-  alert("Sorry, the report could not be flagged. Please try again.");
-  console.error(error);
+const {data,error}=await db.functions.invoke("flag-report",{body:{report_id:Number(id),reason:reason.trim()}});
+if(error||!data?.ok){
+  alert(data?.error||"Sorry, the report could not be flagged. Please try again.");
+  console.error(error||data);
   return;
 }
 
@@ -975,7 +955,12 @@ return String(s||"")
 
 }
 
-function safePhotoUrl(value){const v=String(value||"");return /^data:image\/(png|jpe?g|webp|gif);base64,/i.test(v)?v:""}
+function safePhotoUrl(value){
+  const v=String(value||"");
+  if(/^data:image\/(png|jpe?g|webp|gif);base64,/i.test(v))return v;
+  const prefix=SUPABASE_URL+"/storage/v1/object/public/report-images/";
+  return v.startsWith(prefix)?v:"";
+}
 
 function escAttr(s){
 
