@@ -202,6 +202,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <button class="locbtn" type="button" onclick="handleSignUp()">Create account</button>
 <button class="locbtn" type="button" onclick="handlePasswordReset()">Forgot password?</button>
 <button class="locbtn" type="button" onclick="handleSignOut()">Sign out</button>
+<button class="locbtn" type="button" onclick="handleDeleteAccount()" style="color:#9b1c1c">Delete my account</button>
 </div>
 <div class="notice">Your account is optional. Never share your password with anyone, including Kerbside Connect volunteers.</div>
 </section>
@@ -237,6 +238,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 </section>
 
 <div class="footer">
+<a class="back" href="./privacy-policy.html" style="text-decoration:none;display:inline-block">Privacy Policy</a>
 <button class="back" type="button" onclick="show('privacy')">Privacy & safety</button>
 <button class="back" type="button" onclick="show('terms')">Terms of use</button>
 <button class="back" type="button" onclick="show('guidelines')">Community guidelines</button>
@@ -368,6 +370,25 @@ async function handleSignOut(){
   await refreshAuthUI();
   await refreshModeratorUI();
   alert("You have been signed out.");
+}
+
+async function handleDeleteAccount(){
+  if(!currentUser){alert("Sign in before deleting your account.");return;}
+  const confirmed=confirm("Delete your Kerbside Connect account permanently? Your account will be deleted and your submitted reports will no longer be linked to your account. This cannot be undone.");
+  if(!confirmed)return;
+  const {data:{session}}=await db.auth.getSession();
+  if(!session){alert("Your session has expired. Please sign in again.");return;}
+  const {data,error}=await db.functions.invoke("delete-account",{body:{},headers:{Authorization:"Bearer "+session.access_token}});
+  if(error||!data?.ok){
+    alert(data?.error||"Could not delete your account. Please try again.");
+    return;
+  }
+  await db.auth.signOut();
+  currentUser=null;
+  await refreshAuthUI();
+  await refreshModeratorUI();
+  alert("Your account has been permanently deleted.");
+  show("home");
 }
 
 async function refreshModeratorUI(){
