@@ -1,1 +1,11 @@
-{"name":"Kerbside Connect","short_name":"Kerbside Connect","start_url":"./","display":"standalone","background_color":"#f4f7f5","theme_color":"#12372a","description":"Community-powered kerbside clean-up information and reuse reports."}
+{
+  "name":"Kerbside Connect",
+  "short_name":"Kerbside Connect",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#f4f7f5",
+  "theme_color":"#12372a",
+  "description":"Community-powered kerbside clean-up information and reuse reports.",
+  "categories":["lifestyle","utilities","social"]
+}
