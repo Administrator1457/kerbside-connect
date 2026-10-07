@@ -137,7 +137,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <img id="photoPreview" class="photo-preview" alt="Photo preview">
 
 <label>Description
-<textarea id="desc" maxlength="500" placeholder="Optional details"></textarea>
+<textarea id="desc" maxlength="500" aria-describedby="descriptionCount" placeholder="Optional details"></textarea>
+<div id="descriptionCount" class="small" aria-live="polite">0 / 500 characters</div>
 </label>
 
 <div class="small">Reports automatically expire after 3 days unless refreshed.</div>
@@ -562,6 +563,15 @@ if(submitStatus)submitStatus.textContent="";
 alert("Thanks! Your community report has been added.");
 show("recent");
 
+}
+
+function updateDescriptionCount(){
+  const field=document.getElementById("desc");
+  const counter=document.getElementById("descriptionCount");
+  if(!field||!counter)return;
+  const length=field.value.length;
+  counter.textContent=length+" / 500 characters";
+  counter.style.fontWeight=length>=450?"700":"400";
 }
 
 function previewPhoto(e){
@@ -1004,6 +1014,9 @@ db.auth.onAuthStateChange((_event,session)=>{
   renderAuthIdentity(currentUser);
 });
 loadReports();
+updateDescriptionCount();
+const descriptionField=document.getElementById("desc");
+if(descriptionField)descriptionField.addEventListener("input",updateDescriptionCount);
 openInitialRoute();
 window.addEventListener("hashchange",()=>{
   if(window.location.hash.startsWith("#report="))return;
