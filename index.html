@@ -22,9 +22,12 @@
 :root{--green:#12372a;--mint:#e8f5ee;--accent:#2e7d5b;--text:#173126;--muted:#6b7d74;--card:#fff;--bg:#f4f7f5}
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text)}
-header{background:var(--green);color:white;padding:28px 20px 24px;border-radius:0 0 26px 26px}
-header h1{margin:0;font-size:28px}
-header p{margin:6px 0 0;opacity:.85}
+header{background:linear-gradient(135deg,var(--green),#245c46);color:white;padding:22px 20px 24px;border-radius:0 0 28px 28px;box-shadow:0 6px 24px #12372a33}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{width:52px;height:52px;border-radius:16px;background:#e8f5ee;display:grid;place-items:center;box-shadow:0 4px 12px #0002;flex:none}
+.brand-mark svg{width:40px;height:40px}
+header h1{margin:0;font-size:27px;letter-spacing:-.4px}
+header p{margin:5px 0 0;opacity:.88;font-size:14px}
 .wrap{max-width:720px;margin:auto;padding:18px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .btn,.card{background:var(--card);border:0;border-radius:18px;padding:16px;box-shadow:0 2px 12px #0000000d}.btn{min-height:112px;transition:transform .15s,box-shadow .15s}.btn:active{transform:scale(.98)}
@@ -34,7 +37,7 @@ header p{margin:6px 0 0;opacity:.85}
 .section h2{font-size:19px}
 .report{margin-top:12px;overflow-wrap:anywhere}
 .tag{display:inline-block;background:var(--mint);color:var(--green);padding:5px 9px;border-radius:99px;font-size:12px;margin:3px}
-.small{color:var(--muted);font-size:13px;line-height:1.45}.hero{background:linear-gradient(135deg,var(--green),#245c46);color:white;border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 4px 18px #0002}.hero h2{margin:0 0 6px;font-size:22px}.hero p{margin:0;opacity:.88;font-size:14px}.status{display:inline-block;margin-top:12px;padding:6px 10px;border-radius:99px;background:#ffffff1c;font-size:12px}.report-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.verified{white-space:nowrap;background:#e8f5ee;color:var(--green);border-radius:99px;padding:5px 8px;font-size:11px;font-weight:700}
+.small{color:var(--muted);font-size:13px;line-height:1.45}.hero{background:linear-gradient(135deg,#12372a,#2e7d5b);color:white;border-radius:22px;padding:22px;margin-bottom:16px;position:relative;overflow:hidden;box-shadow:0 4px 18px #0002}.hero::after{content:"";position:absolute;width:170px;height:170px;border-radius:50%;right:-72px;top:-72px;background:#ffffff12}.hero h2{margin:0 0 6px;font-size:23px;position:relative}.hero p{position:relative}.hero p{margin:0;opacity:.88;font-size:14px}.status{display:inline-block;margin-top:12px;padding:6px 10px;border-radius:99px;background:#ffffff1c;font-size:12px}.report-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.verified{white-space:nowrap;background:#e8f5ee;color:var(--green);border-radius:99px;padding:5px 8px;font-size:11px;font-weight:700}
 .map{height:360px;border-radius:18px;overflow:hidden;background:#dcefe4}
 .filterbar{display:flex;gap:7px;overflow:auto;padding:4px 0 10px}
 .filter{white-space:nowrap;border:1px solid #d6e0db;background:white;border-radius:99px;padding:8px 12px;font-weight:600;min-height:40px}
@@ -67,8 +70,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <div id="offlineBanner" class="notice hidden" style="margin:0;border-radius:0;text-align:center">📡 You are offline. Cached app content is available, but live reports may be unavailable.</div>
 <header>
 <div class="wrap">
-<h1>♻️ Kerbside Connect</h1>
-<p>Find it • Reuse it • Keep it out of landfill</p>
+<div class="brand"><div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 512 512"><circle cx="256" cy="256" r="156" fill="#e8f5ee"/><path d="M256 112c-45 0-82 36-82 81 0 31 18 58 44 72v39h76v-39c26-14 44-41 44-72 0-45-37-81-82-81Z" fill="#2e7d5b"/><path d="M218 322h76v24h-76zM226 362h60v22h-60z" fill="#12372a"/><path d="m256 166 20 39 43 6-31 30 7 43-39-20-39 20 7-43-31-30 43-6 20-39Z" fill="#fff"/></svg></div><div><h1>Kerbside Connect</h1><p>Find it • Reuse it • Keep it out of landfill</p></div></div>
 </div>
 </header>
 
