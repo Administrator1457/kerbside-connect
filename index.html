@@ -246,6 +246,7 @@ SUPABASE_PUBLISHABLE_KEY
 let reportsCache=[];
 let map=null;
 let userPos=null;
+let userLocationAccuracy=350;
 let currentFilter="All";
 let photoData="";
 let authMode="signin";
@@ -814,8 +815,9 @@ function renderMap(){
 
     if(r.lat!=null&&r.lng!=null){
 
-      const photo=r.photo
-        ? `<img src="${r.photo}" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-top:8px" alt="Community report photo">`
+      const safePhoto=safePhotoUrl(r.photo);
+      const photo=safePhoto
+        ? `<img src="${safePhoto}" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-top:8px" alt="Community report photo">`
         : "";
 
       const categories=r.cats
@@ -848,7 +850,7 @@ function renderMap(){
 
     L.circle(
       [userPos.lat,userPos.lng],
-      {radius:350}
+      {radius:userLocationAccuracy}
     ).addTo(map);
 
   }
@@ -883,7 +885,9 @@ userPos={
 lat:pos.coords.latitude,
 lng:pos.coords.longitude
 };
+userLocationAccuracy=Math.max(350,Math.min(1500,Number(pos.coords.accuracy)||350));
 
+if(!map)initMap();
 map.setView(
 [userPos.lat,userPos.lng],
 14
