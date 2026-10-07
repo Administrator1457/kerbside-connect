@@ -818,7 +818,7 @@ map.setView(
 14
 );
 
-locationStatus.textContent=
+$("locationStatus").textContent=
 "Location enabled. Reports you submit use an approximate map area, not your exact position.";
 
 renderMap();
@@ -827,7 +827,7 @@ renderMap();
 
 ()=>{
 
-locationStatus.textContent=
+$("locationStatus").textContent=
 "Location permission was not granted. You can still use the app.";
 
 },
