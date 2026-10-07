@@ -235,8 +235,15 @@ const {data,error}=await db
 .order("created_at",{ascending:false});
 
 if(error){
+  console.error("Supabase load error:",error);
+  reportsCache=[];
+  renderReports();
+  return;
+}
 
-console.error(error);
+if(error){
+
+console.error("Supabase load error:",error);
 
 alert(
 "Could not load community reports. Please check the Supabase table permissions."
@@ -262,7 +269,7 @@ date:r.created_at||r.Date||new Date().toISOString(),
 
 lat:r.Lat==null?null:Number(r.Lat),
 
-lng:r.lng==null?null:Number(r.lng),
+lng:r.lng==null?(r.Lng==null?null:Number(r.Lng)):Number(r.lng),
 
 photo:r.Photo||""
 
@@ -314,13 +321,15 @@ Date:new Date().toISOString().slice(0,10)
 
 };
 
-const {error}=await db
+const {data:inserted,error}=await db
 .from("Reports")
-.insert(payload);
+.insert(payload)
+.select()
+.maybeSingle();
 
 if(error){
 
-console.error(error);
+console.error("Supabase insert error:",error);
 
 alert(
 "Sorry, the report could not be saved. Please try again."
