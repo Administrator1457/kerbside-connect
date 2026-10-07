@@ -304,7 +304,19 @@ const SAVED_KEY="kerbside-connect-saved";
 function getSavedIds(){try{return JSON.parse(localStorage.getItem(SAVED_KEY)||"[]").map(String)}catch(e){return []}}
 function isSaved(id){return getSavedIds().includes(String(id))}
 function toggleSaved(id){const ids=getSavedIds();const key=String(id);const next=ids.includes(key)?ids.filter(x=>x!==key):[...ids,key];localStorage.setItem(SAVED_KEY,JSON.stringify(next));renderReports();renderSaved();alert(next.includes(key)?"❤️ Report saved on this device.":"Report removed from saved.");}
-function renderSaved(){const el=$("savedReports");if(!el)return;const ids=getSavedIds();const saved=getReports().filter(r=>ids.includes(String(r.id)));el.innerHTML=saved.length?saved.map(card).join(""):'<div class="empty">No saved reports yet.<br>Tap ❤️ Save on any report you want to keep.</div>'}
+function renderSaved(){
+  const el=$("savedReports");if(!el)return;
+  const ids=getSavedIds();
+  const saved=reportsCache.filter(r=>ids.includes(String(r.id)));
+  const missing=ids.filter(id=>!reportsCache.some(r=>String(r.id)===id));
+  const summary=$("savedSummary");if(summary)summary.textContent=ids.length+" saved on this device";
+  const html=saved.map(r=>card(r)).join("")+missing.map(id=>'<div class="card report"><div class="report-head"><b>📄 Saved report</b><span class="badge removed">UNAVAILABLE</span></div><div class="small">This report is no longer available in the current feed.</div><button class="filter" type="button" style="margin-top:10px" onclick="removeSavedMissing('+Number(id)+')">Remove from saved</button></div>').join("");
+  el.innerHTML=html||'<div class="empty">No saved reports yet.<br>Tap ❤️ Save on any report you want to keep.</div>';
+}
+function removeSavedMissing(id){
+  localStorage.setItem(SAVED_KEY,JSON.stringify(getSavedIds().filter(x=>x!==String(id))));
+  renderSaved();
+}
 
 const councils=[
 ["Campbelltown City Council","https://www.campbelltown.nsw.gov.au/Services-and-Facilities/Waste-and-Recycling/Kerbside-clean-up"],
@@ -414,6 +426,7 @@ async function loadMyReports(){
   const mine=(data||[]).map(r=>({
     id:r.id, suburb:r.Suburb||"", street:r.Street||"", desc:r.Description||"",
     cats:Array.isArray(r.Category)?r.Category:[], date:r.created_at||r.Date||new Date().toISOString(),
+    updatedAt:r.updated_at||null,
     lat:r.Lat==null?null:Number(r.Lat), lng:r.lng==null?(r.Lng==null?null:Number(r.Lng)):Number(r.lng),
     photo:r.Photo||"", status:r.status||"active", expiresAt:r.expires_at||null, userId:r.user_id||null
   }));
@@ -423,9 +436,10 @@ async function loadMyReports(){
   }
   el.innerHTML=mine.map(r=>{
     const expiry=r.expiresAt?new Date(r.expiresAt):null;
+    const expiresSoon=expiry&&expiry.getTime()>Date.now()&&expiry.getTime()-Date.now()<=24*60*60*1000;
     const expired=expiry && expiry.getTime()<=Date.now();
     const action=(r.status==="active" && !expired)
-      ? '<div class="small" style="margin-top:10px">Expires '+expiry.toLocaleString()+'</div><button class="filter" type="button" style="margin-top:10px" onclick="refreshMyReport('+Number(r.id)+')">🔄 Refresh for 3 more days</button><button class="filter" type="button" style="margin-top:10px" onclick="removeMyReport('+Number(r.id)+')">🗑️ Remove my report</button>'
+      ? '<div class="report-badges">'+(expiresSoon?'<span class="badge soon">⏳ EXPIRING SOON</span>':'')+'</div><div class="small" style="margin-top:10px">Expires '+expiry.toLocaleString()+'</div><button class="filter" type="button" style="margin-top:10px" onclick="refreshMyReport('+Number(r.id)+')">🔄 Refresh for 3 more days</button><button class="filter" type="button" style="margin-top:10px" onclick="removeMyReport('+Number(r.id)+')">🗑️ Remove my report</button>'
       : (r.status==="active" && expired)
         ? '<div class="small" style="margin-top:10px">This report has expired.</div><button class="filter" type="button" style="margin-top:10px" onclick="refreshMyReport('+Number(r.id)+')">🔄 Refresh report</button><button class="filter" type="button" style="margin-top:10px" onclick="removeMyReport('+Number(r.id)+')">🗑️ Remove my report</button>'
         : '<div class="small" style="margin-top:10px">Status: '+esc(r.status)+'</div>';
@@ -803,6 +817,7 @@ canvas.toBlob(blob=>{
 },"image/jpeg",0.78);
 $("photoPreview").src=photoData;
 $("photoPreview").style.display="block";
+alert("📸 Photo ready. Please check that it does not show faces, number plates, house numbers or other private information.");
 };
 img.src=reader.result;
 };
