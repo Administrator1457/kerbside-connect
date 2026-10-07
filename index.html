@@ -263,6 +263,9 @@ const SUPABASE_URL="https://vaopowstbbppgfesvmgh.supabase.co";
 
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_CXeD_uVbFlEJBD0Ks5lASQ_pQAu6zwi";
 
+// Production URL used for Supabase email confirmation and password-reset redirects.
+const APP_URL="https://administrator1457.github.io/kerbside-connect/";
+
 const db=window.supabase.createClient(
 SUPABASE_URL,
 SUPABASE_PUBLISHABLE_KEY
@@ -342,7 +345,7 @@ async function handleAuth(e){
 async function handlePasswordReset(){
   const email=document.getElementById("authEmail").value.trim();
   if(!email){ alert("Enter your email address first."); return; }
-  const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});
+  const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:APP_URL});
   if(error){ alert("Password reset could not be started: "+error.message); return; }
   alert("If that email has an account, a password reset link has been sent.");
 }
@@ -360,7 +363,7 @@ async function handleSignUp(){
   const button=document.querySelector('#account button[onclick="handleSignUp()"]');
   if(button)button.disabled=true;
   try{
-    const {data,error}=await db.auth.signUp({email,password});
+    const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:APP_URL}});
     if(error){
       const duplicate=error.code==="23505"||error.message?.toLowerCase().includes("duplicate key")||error.message?.toLowerCase().includes("already registered");
       alert(duplicate?"An account with this email already exists. Please use Sign in instead.":"Account creation failed: "+error.message);
