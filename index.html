@@ -301,16 +301,28 @@ let lastReportsError="";
 let deferredInstallPrompt=null;
 const $=id=>document.getElementById(id);
 const SAVED_KEY="kerbside-connect-saved";
+const SAVED_DATA_KEY="kerbside-connect-saved-data";
+function getSavedData(){try{return JSON.parse(localStorage.getItem(SAVED_DATA_KEY)||"{}")}catch(e){return {}}}
 function getSavedIds(){try{return JSON.parse(localStorage.getItem(SAVED_KEY)||"[]").map(String)}catch(e){return []}}
 function isSaved(id){return getSavedIds().includes(String(id))}
-function toggleSaved(id){const ids=getSavedIds();const key=String(id);const next=ids.includes(key)?ids.filter(x=>x!==key):[...ids,key];localStorage.setItem(SAVED_KEY,JSON.stringify(next));renderReports();renderSaved();alert(next.includes(key)?"❤️ Report saved on this device.":"Report removed from saved.");}
+function toggleSaved(id){
+  const ids=getSavedIds(),key=String(id),data=getSavedData();
+  const next=ids.includes(key)?ids.filter(x=>x!==key):[...ids,key];
+  const report=reportsCache.find(x=>String(x.id)===key);
+  if(next.includes(key)&&report)data[key]=report;else delete data[key];
+  localStorage.setItem(SAVED_KEY,JSON.stringify(next));
+  localStorage.setItem(SAVED_DATA_KEY,JSON.stringify(data));
+  renderReports();renderSaved();
+  alert(next.includes(key)?"❤️ Report saved on this device.":"Report removed from saved.");
+}
 function renderSaved(){
   const el=$("savedReports");if(!el)return;
   const ids=getSavedIds();
-  const saved=reportsCache.filter(r=>ids.includes(String(r.id)));
-  const missing=ids.filter(id=>!reportsCache.some(r=>String(r.id)===id));
+  const data=getSavedData();
+  const saved=ids.map(id=>reportsCache.find(r=>String(r.id)===id)||data[id]).filter(Boolean);
+  const missing=ids.filter(id=>!reportsCache.some(r=>String(r.id)===id)&&!data[id]);
   const summary=$("savedSummary");if(summary)summary.textContent=ids.length+" saved on this device";
-  const html=saved.map(r=>card(r)).join("")+missing.map(id=>'<div class="card report"><div class="report-head"><b>📄 Saved report</b><span class="badge removed">UNAVAILABLE</span></div><div class="small">This report is no longer available in the current feed.</div><button class="filter" type="button" style="margin-top:10px" onclick="removeSavedMissing('+Number(id)+')">Remove from saved</button></div>').join("");
+  const html=saved.map(r=>card(r)).join("")+missing.map(id=>'<div class="card report"><div class="report-head"><b>📄 Saved report</b><span class="badge removed">UNAVAILABLE</span></div><div class="small">This report is no longer available and no local copy remains.</div><button class="filter" type="button" style="margin-top:10px" onclick="removeSavedMissing('+Number(id)+')">Remove from saved</button></div>').join("");
   el.innerHTML=html||'<div class="empty">No saved reports yet.<br>Tap ❤️ Save on any report you want to keep.</div>';
 }
 function removeSavedMissing(id){
