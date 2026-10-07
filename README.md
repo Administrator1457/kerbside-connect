@@ -71,6 +71,10 @@ Before public launch:
 - [ ] Test accessibility and keyboard navigation
 - [ ] Run a final privacy/safety review before public release
 
+## Contributing
+
+See `CONTRIBUTING.md` for development and change-safety guidelines.
+
 ## Security
 
 See `SECURITY.md` for security practices, vulnerability-reporting guidance and production security requirements.
