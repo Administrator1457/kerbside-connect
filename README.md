@@ -71,6 +71,10 @@ Before public launch:
 - [ ] Test accessibility and keyboard navigation
 - [ ] Run a final privacy/safety review before public release
 
+## Security
+
+See `SECURITY.md` for security practices, vulnerability-reporting guidance and production security requirements.
+
 ## Roadmap
 
 See `SUPABASE_SCHEMA.md` for the proposed backend structure required for ownership, moderation, report status, expiry, and scalable image storage.
