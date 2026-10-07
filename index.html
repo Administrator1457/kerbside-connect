@@ -347,20 +347,31 @@ async function handlePasswordReset(){
   alert("If that email has an account, a password reset link has been sent.");
 }
 
+let signUpInProgress=false;
 async function handleSignUp(){
+  if(signUpInProgress)return;
   const email=document.getElementById("authEmail").value.trim();
   const password=document.getElementById("authPassword").value;
   if(!email||password.length<6){
     alert("Enter a valid email and a password of at least 6 characters.");
     return;
   }
-  const {data,error}=await db.auth.signUp({email,password});
-  if(error){
-    alert("Account creation failed: "+error.message);
-    return;
+  signUpInProgress=true;
+  const button=document.querySelector('#account button[onclick="handleSignUp()"]');
+  if(button)button.disabled=true;
+  try{
+    const {data,error}=await db.auth.signUp({email,password});
+    if(error){
+      const duplicate=error.code==="23505"||error.message?.toLowerCase().includes("duplicate key")||error.message?.toLowerCase().includes("already registered");
+      alert(duplicate?"An account with this email already exists. Please use Sign in instead.":"Account creation failed: "+error.message);
+      return;
+    }
+    await refreshAuthUI();
+    alert(data?.session?"Account created and signed in.":"Account created. Check your email if confirmation is required.");
+  }finally{
+    signUpInProgress=false;
+    if(button)button.disabled=false;
   }
-  await refreshAuthUI();
-  alert(data?.session?"Account created and signed in.":"Account created. Check your email if confirmation is required.");
 }
 
 async function handleSignOut(){
