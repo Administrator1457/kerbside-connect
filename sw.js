@@ -1,4 +1,4 @@
-const CACHE_NAME="kerbside-connect-v1";
+const CACHE_NAME="kerbside-connect-v2";
 const APP_SHELL=["./","./index.html","./manifest.webmanifest"];
 
 self.addEventListener("install",event=>{
