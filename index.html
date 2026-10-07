@@ -147,9 +147,15 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <div id="descriptionCount" class="small" aria-live="polite">0 / 500 characters</div>
 </label>
 
+<div class="card report" style="margin:10px 0">
+<b>📍 Location (optional)</b>
+<div id="reportLocationStatus" class="small" style="margin-top:5px">No location attached. Your exact location is never required.</div>
+<button class="locbtn" type="button" onclick="useLocationForReport()">📍 Add approximate location</button>
+</div>
 <div class="small">Reports automatically expire after 3 days unless refreshed.</div>
 <div class="small" style="margin-top:6px">Please avoid house numbers, faces, registration plates and private information in photos or descriptions.</div>
 
+<div id="signedReportNotice" class="small" style="margin-top:8px"></div>
 <button class="primary" id="submitReportButton" type="submit">Submit community report</button>
 <div id="submitStatus" class="small" aria-live="polite"></div>
 
@@ -611,6 +617,24 @@ renderReports();
 
 }
 
+function updateReportLocationStatus(){
+  const el=document.getElementById("reportLocationStatus");
+  if(!el)return;
+  el.textContent=userPos
+    ?"Approximate location attached to this report. Your exact position is not displayed."
+    :"No location attached. Your exact location is never required.";
+}
+async function useLocationForReport(){
+  await useLocation();
+  updateReportLocationStatus();
+}
+function updateSignedReportNotice(){
+  const el=document.getElementById("signedReportNotice");
+  if(!el)return;
+  el.textContent=currentUser
+    ?"👤 You're signed in. This report will appear under My Reports."
+    :"You can report without an account. Sign in if you'd like this report linked to your account.";
+}
 async function saveReport(e){
 
 e.preventDefault();
@@ -1167,9 +1191,12 @@ db.auth.onAuthStateChange((_event,session)=>{
   renderAuthIdentity(currentUser);
   refreshModeratorUI();
   loadMyReports();
+  updateSignedReportNotice();
 });
 loadReports();
 updateDescriptionCount();
+updateSignedReportNotice();
+updateReportLocationStatus();
 const descriptionField=document.getElementById("desc");
 if(descriptionField)descriptionField.addEventListener("input",updateDescriptionCount);
 openInitialRoute();
