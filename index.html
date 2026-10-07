@@ -1074,7 +1074,12 @@ function renderMap(){
           <div style="margin-top:7px;color:#6b7d74;font-size:12px">🔵 Community reported</div>
         </div>`;
 
-      const marker=L.marker([r.lat,r.lng]).addTo(map).bindPopup(popup);
+      const marker=L.marker([r.lat,r.lng],{
+        title:r.suburb+(r.street?" — "+r.street:""),
+        alt:"Kerbside Connect community report",
+        riseOnHover:true
+      }).addTo(map).bindPopup(popup,{maxWidth:280});
+      marker.on("click",()=>marker.openPopup());
       mapMarkers.push(marker);
     });
 
