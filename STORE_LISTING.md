@@ -39,6 +39,17 @@ House & Home
 ## Privacy policy
 https://administrator1457.github.io/kerbside-connect/privacy-policy.html
 
+## Current Google Play asset requirements
+
+- App icon: 512x512, 32-bit PNG with alpha, maximum 1 MB.
+- Feature graphic: 1024x500, JPEG or 24-bit PNG without alpha.
+- Store listing: minimum two screenshots across different device types to publish.
+- Recommended for app recommendation surfaces: at least four phone screenshots at 1080x1920 or higher in portrait (9:16), or 1920x1080 or higher in landscape (16:9).
+- Screenshots must depict the actual current app experience; avoid device frames, fingers, store badges and promotional claims.
+- Screenshot text should be kept minimal; any tagline should occupy no more than 20% of the image.
+
+Source: Google Play Console preview asset requirements, checked October 2026.
+
 ## Suggested screenshot sequence
 1. Home — Find useful items in your community
 2. Map — See reported items around you
