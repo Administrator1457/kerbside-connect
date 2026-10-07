@@ -245,6 +245,7 @@ SUPABASE_PUBLISHABLE_KEY
 
 let reportsCache=[];
 let map=null;
+let mapMarkers=[];
 let userPos=null;
 let userLocationAccuracy=350;
 let currentFilter="All";
@@ -819,57 +820,43 @@ attribution:"© OpenStreetMap contributors"
 function renderMap(){
   if(!map)return;
 
-  map.eachLayer(l=>{
-    if(l instanceof L.Marker) map.removeLayer(l);
-    if(l instanceof L.Circle) map.removeLayer(l);
-  });
+  mapMarkers.forEach(marker=>map.removeLayer(marker));
+  mapMarkers=[];
+  if(window.userLocationCircle){map.removeLayer(window.userLocationCircle);window.userLocationCircle=null;}
 
   getReports()
-  .filter(r=>currentFilter==="All"||r.cats.includes(currentFilter))
-  .forEach(r=>{
-
-    if(r.lat!=null&&r.lng!=null){
+    .filter(r=>currentFilter==="All"||r.cats.includes(currentFilter))
+    .forEach(r=>{
+      if(r.lat==null||r.lng==null)return;
 
       const safePhoto=safePhotoUrl(r.photo);
       const photo=safePhoto
         ? `<img src="${safePhoto}" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-top:8px" alt="Community report photo">`
         : "";
 
-      const categories=r.cats
-        .map(esc)
-        .join(", ");
-
+      const categories=r.cats.map(esc).join(", ");
       const popup=`
         <div style="min-width:180px;max-width:260px">
           <b>📍 ${esc(r.suburb)}</b>
           ${r.street?`<div>${esc(r.street)}</div>`:""}
-          <div style="margin-top:5px">
-            🛠️ ${categories}
-          </div>
+          <div style="margin-top:5px">🛠️ ${categories}</div>
           ${r.desc?`<div style="margin-top:5px">${esc(r.desc)}</div>`:""}
           ${photo}
-          <div style="margin-top:7px;color:#6b7d74;font-size:12px">
-            🔵 Community reported
-          </div>
-        </div>
-      `;
+          <div style="margin-top:7px;color:#6b7d74;font-size:12px">🔵 Community reported</div>
+        </div>`;
 
-      L.marker([r.lat,r.lng])
-        .addTo(map)
-        .bindPopup(popup);
-    }
-
-  });
+      const marker=L.marker([r.lat,r.lng]).addTo(map).bindPopup(popup);
+      mapMarkers.push(marker);
+    });
 
   if(userPos){
-
-    L.circle(
+    window.userLocationCircle=L.circle(
       [userPos.lat,userPos.lng],
       {radius:userLocationAccuracy}
     ).addTo(map);
-
   }
 }
+
 function distanceKm(lat1,lng1,lat2,lng2){
   if(lat1==null||lng1==null||lat2==null||lng2==null)return null;
   const R=6371, toRad=v=>v*Math.PI/180;
