@@ -89,3 +89,35 @@ A future private moderator interface should provide:
 - basic abuse/rate-limit visibility
 
 Admin controls must never be exposed solely by hiding buttons in the public frontend.
+
+
+## Safe migration order
+
+Apply production backend changes in this order after confirming the live schema:
+
+1. Back up/export the existing Reports and report_flags data.
+2. Add new nullable ownership/status/timestamp fields before making any field required.
+3. Add indexes and verify existing queries still work.
+4. Configure Supabase Storage for report images and test upload permissions separately.
+5. Deploy server-side validation/rate limiting.
+6. Enable Row Level Security and test anonymous read/create, authenticated ownership, and moderator access with separate test accounts.
+7. Enable/verify Realtime for Reports if live updates are required.
+8. Update the frontend to use the confirmed production fields and Storage paths.
+9. Test expiry, moderation, flagging, account flows and image deletion.
+10. Only then remove legacy base64 photo storage if existing records have been migrated safely.
+
+### Required verification before SQL is applied
+
+The following must be confirmed from the live Supabase project rather than guessed:
+
+- Exact column names and data types for Reports
+- Exact primary key type for Reports.id
+- Exact column names and types for report_flags
+- Existing foreign keys and constraints
+- Existing RLS policies
+- Existing Storage buckets and policies
+- Whether Reports is enabled for Realtime
+- Current Auth redirect URLs
+- Whether anonymous report creation is intended
+
+Do not run migration SQL until these values are known.
