@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#12372a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Kerbside Connect">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <title>Kerbside Connect</title>
@@ -44,11 +47,14 @@ textarea{min-height:90px}
 .hidden{display:none}
 .empty{color:var(--muted);text-align:center;padding:25px}
 .footer{font-size:12px;color:var(--muted);padding:22px 0;text-align:center}
+button:disabled{opacity:.6;cursor:not-allowed}
+[aria-live]{min-height:18px}
 </style>
 </head>
 
 <body>
 
+<div id="offlineBanner" class="notice hidden" style="margin:0;border-radius:0;text-align:center">📡 You are offline. Cached app content is available, but live reports may be unavailable.</div>
 <header>
 <div class="wrap">
 <h1>♻️ Kerbside Connect</h1>
@@ -126,7 +132,8 @@ textarea{min-height:90px}
 
 <div class="small">Reports automatically expire after 3 days unless refreshed.</div>
 
-<button class="primary">Submit community report</button>
+<button class="primary" id="submitReportButton" type="submit">Submit community report</button>
+<div id="submitStatus" class="small" aria-live="polite"></div>
 
 </form>
 </section>
@@ -161,6 +168,7 @@ textarea{min-height:90px}
 <button class="primary" type="submit" id="authButton">Sign in</button>
 </form>
 <button class="locbtn" type="button" onclick="handleSignUp()">Create account</button>
+<button class="locbtn" type="button" onclick="handlePasswordReset()">Forgot password?</button>
 <button class="locbtn" type="button" onclick="handleSignOut()">Sign out</button>
 </div>
 <div class="notice">Your account is optional. Never share your password with anyone, including Kerbside Connect volunteers.</div>
@@ -203,6 +211,7 @@ let userPos=null;
 let currentFilter="All";
 let photoData="";
 let authMode="signin";
+let isLoadingReports=false;
 
 const councils=[
 ["Campbelltown City Council","https://www.campbelltown.nsw.gov.au/Services-and-Facilities/Waste-and-Recycling/Kerbside-clean-up"],
@@ -240,6 +249,14 @@ async function handleAuth(e){
   }
   await refreshAuthUI();
   alert("Welcome back!");
+}
+
+async function handlePasswordReset(){
+  const email=document.getElementById("authEmail").value.trim();
+  if(!email){ alert("Enter your email address first."); return; }
+  const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});
+  if(error){ alert("Password reset could not be started: "+error.message); return; }
+  alert("If that email has an account, a password reset link has been sent.");
 }
 
 async function handleSignUp(){
@@ -308,6 +325,11 @@ r=>now-new Date(r.date).getTime()<EXPIRY
 
 async function loadReports(){
 
+if(isLoadingReports)return;
+ isLoadingReports=true;
+ const status=document.getElementById("reports");
+ if(status && !reportsCache.length) status.innerHTML='<div class="empty">Loading community reports…</div>';
+
 const {data,error}=await db
 .from("Reports")
 .select("*")
@@ -315,8 +337,8 @@ const {data,error}=await db
 
 if(error){
   console.error("Supabase load error:",error);
-  reportsCache=[];
-  renderReports();
+  if(status) status.innerHTML='<div class="empty">Could not load reports right now.<br><button class="filter" type="button" onclick="loadReports()" style="margin-top:10px">↻ Try again</button></div>';
+  isLoadingReports=false;
   return;
 }
 
@@ -347,12 +369,17 @@ r=>Date.now()-new Date(r.date).getTime()<EXPIRY
 );
 
 renderReports();
+ isLoadingReports=false;
 
 }
 
 async function saveReport(e){
 
 e.preventDefault();
+const submitButton=document.getElementById("submitReportButton");
+const submitStatus=document.getElementById("submitStatus");
+if(submitButton)submitButton.disabled=true;
+if(submitStatus)submitStatus.textContent="Checking your report…";
 
 const cats=[
 ...document.querySelectorAll(
@@ -362,26 +389,36 @@ const cats=[
 
 if(!suburb.value.trim()){
 alert("Please enter the suburb.");
-return;
+if(submitButton)submitButton.disabled=false; return;
 }
 
 if(suburb.value.trim().length>80){
 alert("Please keep the suburb name under 80 characters.");
-return;
+if(submitButton)submitButton.disabled=false; return;
 }
 
 if(street.value.trim().length>160){
 alert("Please keep the street/area under 160 characters.");
-return;
+if(submitButton)submitButton.disabled=false; return;
 }
 
 if(!cats.length){
-
 alert("Please select at least one category.");
-
-return;
-
+if(submitButton)submitButton.disabled=false; return;
 }
+
+const recentSimilar=reportsCache.some(r=>{
+  const sameSuburb=r.suburb.trim().toLowerCase()===suburb.value.trim().toLowerCase();
+  const sameStreet=(r.street||"").trim().toLowerCase()===(street.value||"").trim().toLowerCase();
+  const overlap=r.cats.some(x=>cats.includes(x));
+  return sameSuburb&&sameStreet&&overlap;
+});
+if(recentSimilar && !confirm("A similar report already exists for this area. Submit anyway?")){
+  if(submitButton)submitButton.disabled=false;
+  if(submitStatus)submitStatus.textContent="";
+  return;
+}
+if(submitStatus)submitStatus.textContent="Saving your community report…";
 
 const payload={
 
@@ -416,7 +453,8 @@ console.error("Supabase insert error:",error);
 alert(
 "Sorry, the report could not be saved. Please try again."
 );
-
+if(submitButton)submitButton.disabled=false;
+if(submitStatus)submitStatus.textContent="";
 return;
 
 }
@@ -432,8 +470,9 @@ photoPreview.style.display="none";
 
 photoPreview.src="";
 
+if(submitButton)submitButton.disabled=false;
+if(submitStatus)submitStatus.textContent="";
 alert("Thanks! Your community report has been added.");
-
 show("recent");
 
 }
@@ -506,8 +545,7 @@ ${img}
 
 <button class="filter" style="margin-top:10px"
   type="button"
-  onclick="shareReport(${r.id})"
-  style="margin-top:10px">
+  onclick="shareReport(${r.id})">
   📤 Share
 </button>
 
@@ -837,6 +875,14 @@ Open council website →
 
 refreshAuthUI();
 loadReports();
+
+function updateOfflineUI(){
+  const el=document.getElementById("offlineBanner");
+  if(el)el.classList.toggle("hidden",navigator.onLine);
+}
+window.addEventListener("online",updateOfflineUI);
+window.addEventListener("offline",updateOfflineUI);
+updateOfflineUI();
 
 try{
   db.channel("kerbside-live-reports")
