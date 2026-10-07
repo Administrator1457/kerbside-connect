@@ -322,7 +322,7 @@ function renderAuthIdentity(user){
   if(user){
     const name=user.user_metadata?.display_name||user.user_metadata?.name||"Signed-in user";
     const email=user.email||"";
-    status.innerHTML="<b>👋 "+esc(name)+"</b><br><span class=\"small\">"+esc(email)+"</span><br><span class=\"small\">You are signed in. Account ownership features will become available once the production database supports report ownership.</span>";
+    status.innerHTML="<b>👋 "+esc(name)+"</b><br><span class=\"small\">"+esc(email)+"</span><br><span class=\"small\">You are signed in and ready to use Kerbside Connect.</span>";
     $("authButton").textContent="Sign in";
   }else{
     status.textContent="You can use Kerbside Connect without an account. Sign in if you want an account for future personalised features.";
