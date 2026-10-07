@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Kerbside Connect">
+<rect width="512" height="512" rx="112" fill="#12372a"/>
+<circle cx="256" cy="256" r="156" fill="#e8f5ee"/>
+<path d="M256 112c-45 0-82 36-82 81 0 31 18 58 44 72v39h76v-39c26-14 44-41 44-72 0-45-37-81-82-81Z" fill="#2e7d5b"/>
+<path d="M218 322h76v24h-76zM226 362h60v22h-60z" fill="#12372a"/>
+<path d="m256 166 20 39 43 6-31 30 7 43-39-20-39 20 7-43-31-30 43-6 20-39Z" fill="#fff"/>
+</svg>
