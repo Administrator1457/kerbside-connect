@@ -1,11 +1,34 @@
 {
-  "name":"Kerbside Connect",
-  "short_name":"Kerbside Connect",
-  "start_url":"./",
-  "scope":"./",
-  "display":"standalone",
-  "background_color":"#f4f7f5",
-  "theme_color":"#12372a",
-  "description":"Community-powered kerbside clean-up information and reuse reports.",
-  "categories":["lifestyle","utilities","social"]
+  "name": "Kerbside Connect",
+  "short_name": "Kerbside Connect",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7f5",
+  "theme_color": "#12372a",
+  "description": "Community-powered kerbside clean-up information and reuse reports.",
+  "categories": [
+    "lifestyle",
+    "utilities",
+    "social"
+  ],
+  "lang": "en-AU",
+  "dir": "ltr",
+  "orientation": "portrait",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ],
+  "shortcuts": [
+    {
+      "name": "Find Clean-Ups",
+      "short_name": "Find",
+      "url": "./#mapview"
+    },
+    {
+      "name": "Report a Clean-Up",
+      "short_name": "Report",
+      "url": "./#report"
+    }
+  ]
 }
