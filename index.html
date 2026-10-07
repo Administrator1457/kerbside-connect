@@ -105,6 +105,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <div class="filterbar" id="filters"></div>
 <div class="map"><div id="map"></div></div>
 <button class="locbtn" onclick="useLocation()">📍 Use my current location</button>
+<button class="locbtn" id="nearMeButton" onclick="toggleNearMe()">📏 Near Me: Off</button>
 <div id="locationStatus" class="small">Location is optional. If you submit a report with location, the map uses an approximate area rather than your exact position.</div>
 <div class="notice">Map reports are community submissions. Check the site before travelling and respect private property.</div>
 <div id="mapReports"></div>
@@ -287,6 +288,7 @@ let mapMarkers=[];
 let userPos=null;
 let userLocationAccuracy=350;
 let currentFilter="All";
+let nearMeOnly=false;
 let photoData="";
 let photoFile=null;
 let isLoadingReports=false;
@@ -946,6 +948,7 @@ let all=getReports();
 
 if(userPos){
   all=all.map(r=>({...r,distance:distanceKm(userPos.lat,userPos.lng,r.lat,r.lng)}));
+  if(nearMeOnly) all=all.filter(r=>r.distance!=null&&r.distance<=10);
   all.sort((x,y)=>(x.distance??Infinity)-(y.distance??Infinity));
 }
 
@@ -1023,7 +1026,18 @@ currentFilter=c;
 
 renderReports();
 
-}function filterReports(){
+}
+function toggleNearMe(){
+  if(!userPos){
+    alert("Tap “Use my current location” first. Your exact location is not shown to other users.");
+    return;
+  }
+  nearMeOnly=!nearMeOnly;
+  const btn=document.getElementById("nearMeButton");
+  if(btn)btn.textContent="📏 Near Me: "+(nearMeOnly?"On":"Off");
+  renderReports();
+}
+function filterReports(){
   renderReports();
         }
 
