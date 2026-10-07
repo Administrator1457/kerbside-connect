@@ -23,6 +23,12 @@ jobs:
         with:
           node-version: 22
 
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
       - name: Install dependencies
         run: npm install
 
@@ -77,7 +83,7 @@ jobs:
 
       - name: Archive iOS project
         run: |
-          xcodebuild -workspace ios/App/App.xcworkspace             -scheme App             -configuration Release             -sdk iphoneos             -archivePath build/KerbsideConnect.xcarchive             archive             CODE_SIGNING_ALLOWED=NO
+          xcodebuild -project ios/App/App.xcodeproj             -scheme App             -configuration Release             -sdk iphoneos             -archivePath build/KerbsideConnect.xcarchive             archive             CODE_SIGNING_ALLOWED=NO
 
       - name: Upload iOS archive
         uses: actions/upload-artifact@v4
