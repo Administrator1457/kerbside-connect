@@ -440,17 +440,24 @@ const cats=[
 )
 ].map(x=>x.value);
 
-if(!$("suburb").value.trim()){
+const suburbValue=$("suburb").value.trim();
+const streetValue=$("street").value.trim();
+const descriptionValue=$("desc").value.trim();
+if(/[<>]/.test(suburbValue)||/[<>]/.test(streetValue)||/[<>]/.test(descriptionValue)){
+alert("Please remove HTML-style characters such as < or > from the report.");
+if(submitButton)submitButton.disabled=false; return;
+}
+if(!suburbValue){
 alert("Please enter the suburb.");
 if(submitButton)submitButton.disabled=false; return;
 }
 
-if($("suburb").value.trim().length>80){
+if(suburbValue.length>80){
 alert("Please keep the suburb name under 80 characters.");
 if(submitButton)submitButton.disabled=false; return;
 }
 
-if($("street").value.trim().length>160){
+if(streetValue.length>160){
 alert("Please keep the street/area under 160 characters.");
 if(submitButton)submitButton.disabled=false; return;
 }
@@ -485,7 +492,7 @@ Lat:userPos?Number(userPos.lat.toFixed(3)):null,
 
 lng:userPos?Number(userPos.lng.toFixed(3)):null,
 
-Description:$("desc").value.trim()||null,
+Description:descriptionValue||null,
 
 Photo:photoData||null,
 
@@ -533,6 +540,10 @@ show("recent");
 function previewPhoto(e){
 const f=e.target.files?.[0];
 if(!f)return;
+if(!f.type.startsWith("image/")){
+alert("Please choose an image file.");
+e.target.value=""; return;
+}
 if(f.size>4*1024*1024){
 alert("Please choose a photo under 4 MB.");
 e.target.value="";
