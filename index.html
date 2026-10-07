@@ -285,6 +285,21 @@ async function refreshAuthUI(){
   }
 }
 
+let currentUser=null;
+
+function renderAuthIdentity(user){
+  const status=$("authStatus");
+  if(!status)return;
+  if(user){
+    const name=user.user_metadata?.display_name||user.user_metadata?.name||"Signed-in user";
+    const email=user.email||"";
+    status.innerHTML="<b>👋 "+esc(name)+"</b><br><span class=\"small\">"+esc(email)+"</span><br><span class=\"small\">You are signed in. Account ownership features will become available once the production database supports report ownership.</span>";
+    $("authButton").textContent="Sign in";
+  }else{
+    status.textContent="You can use Kerbside Connect without an account. Sign in if you want an account for future personalised features.";
+  }
+}
+
 async function handleAuth(e){
   e.preventDefault();
   const email=document.getElementById("authEmail").value.trim();
