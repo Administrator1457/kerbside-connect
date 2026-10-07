@@ -13,6 +13,9 @@ Kerbside Connect is a mobile-first community app for discovering and reporting u
 - Password reset flow
 - Community report sharing
 - Report flagging/moderation queue
+- Device-saved reports
+- Shareable deep links to individual reports
+- Hardened photo rendering and input handling
 - Three-day report expiry in the app
 - Duplicate-report warning
 - Client-side photo resizing/compression
