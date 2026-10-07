@@ -637,6 +637,7 @@ lng:r.lng==null?(r.Lng==null?null:Number(r.Lng)):Number(r.lng),
 photo:r.Photo||"",
 status:r.status||"active",
 expiresAt:r.expires_at||null,
+updatedAt:r.updated_at||null,
 userId:r.user_id||null
 }));
 
@@ -966,9 +967,13 @@ const a=search
     )
   : all;
 
-const visible = currentFilter==="All"
-  ? a
-  : a.filter(r=>r.cats.includes(currentFilter));
+let filtered=currentFilter==="All"?a:a.filter(r=>r.cats.includes(currentFilter));
+if(distanceFilter!=null && userPos) filtered=filtered.filter(r=>r.distance!=null&&r.distance<=distanceFilter);
+const visible=sortMode==="closest"&&userPos
+  ?[...filtered].sort((x,y)=>(x.distance??Infinity)-(y.distance??Infinity))
+  :[...filtered].sort((x,y)=>new Date(y.date)-new Date(x.date));
+const searchHint=$("searchLocationHint");
+if(searchHint)searchHint.textContent=distanceFilter!=null&&!userPos?"📍 Use your location to apply distance filters.":userPos?(sortMode==="closest"?"📍 Closest reports first.":"📍 Newest reports first."):"";
 
 const reportsEl=document.getElementById("reports");
 if(reportsEl){
@@ -1031,7 +1036,19 @@ currentFilter=c;
 
 renderReports();
 
+}function setDistanceFilter(km){
+  distanceFilter=km;
+  ["5","10","25","All"].forEach(x=>{const b=$("distance"+x);if(b)b.classList.toggle("active",String(km==null?"All":km)===x);});
+  renderReports();
 }
+function setSortMode(mode){
+  if(mode==="closest"&&!userPos){alert("Tap “Use my current location” first to sort by distance.");return;}
+  sortMode=mode;
+  $("sortNewest")?.classList.toggle("active",mode==="newest");
+  $("sortClosest")?.classList.toggle("active",mode==="closest");
+  renderReports();
+}
+
 function toggleNearMe(){
   if(!userPos){
     alert("Tap “Use my current location” first. Your exact location is not shown to other users.");
@@ -1093,11 +1110,13 @@ function renderMap(){
           <div style="margin-top:7px;color:#6b7d74;font-size:12px">🔵 Community reported</div>
         </div>`;
 
+      const icon=markerIconFor(r);
       const marker=L.marker([r.lat,r.lng],{
         title:r.suburb+(r.street?" — "+r.street:""),
         alt:"Kerbside Connect community report",
-        riseOnHover:true
-      }).addTo(map).bindPopup(popup,{maxWidth:280});
+        riseOnHover:true,
+        icon
+      }).addTo(map).bindPopup(popup,{maxWidth:300});
       marker.on("click",()=>marker.openPopup());
       mapMarkers.push(marker);
     });
@@ -1110,6 +1129,11 @@ function renderMap(){
   }
 }
 
+function markerIconFor(r){
+  const icons={"Tools":"🔧","Lawn equipment":"🌱","Furniture":"🪑","Metal":"🔩","Electronics":"🔌","Other":"📦"};
+  const emoji=icons[r.cats?.[0]]||"♻️";
+  return L.divIcon({className:"kc-marker",html:'<div style="width:38px;height:38px;border-radius:50%;background:#12372a;color:white;border:3px solid white;box-shadow:0 2px 8px #0004;display:grid;place-items:center;font-size:19px">'+emoji+"</div>",iconSize:[38,38],iconAnchor:[19,19],popupAnchor:[0,-18]});
+}
 function distanceKm(lat1,lng1,lat2,lng2){
   if(lat1==null||lng1==null||lat2==null||lng2==null)return null;
   const R=6371, toRad=v=>v*Math.PI/180;
@@ -1118,6 +1142,11 @@ function distanceKm(lat1,lng1,lat2,lng2){
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
+function centerOnMe(){
+  if(!userPos){alert("Tap “Use my current location” first.");return;}
+  if(!map)initMap();
+  map.setView([userPos.lat,userPos.lng],14,{animate:true});
+}
 function useLocation(){
 
 if(!navigator.geolocation){
