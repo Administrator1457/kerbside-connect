@@ -1,0 +1,19 @@
+{
+  "name": "kerbside-connect",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Community-powered kerbside clean-up information and reuse reports.",
+  "scripts": {
+    "cap:sync": "npx cap sync",
+    "cap:android": "npx cap open android",
+    "cap:ios": "npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/ios": "^8.0.0"
+  }
+}
