@@ -497,35 +497,31 @@ show("recent");
 }
 
 function previewPhoto(e){
-
 const f=e.target.files?.[0];
-
 if(!f)return;
-
 if(f.size>4*1024*1024){
-
 alert("Please choose a photo under 4 MB.");
-
 e.target.value="";
-
 return;
-
 }
-
 const reader=new FileReader();
-
 reader.onload=()=>{
-
-photoData=reader.result;
-
+const img=new Image();
+img.onload=()=>{
+const max=1280;
+const scale=Math.min(1,max/Math.max(img.width,img.height));
+const canvas=document.createElement("canvas");
+canvas.width=Math.max(1,Math.round(img.width*scale));
+canvas.height=Math.max(1,Math.round(img.height*scale));
+const ctx=canvas.getContext("2d");
+ctx.drawImage(img,0,0,canvas.width,canvas.height);
+photoData=canvas.toDataURL("image/jpeg",0.78);
 photoPreview.src=photoData;
-
 photoPreview.style.display="block";
-
 };
-
+img.src=reader.result;
+};
 reader.readAsDataURL(f);
-
 }
 
 function card(r){
