@@ -60,7 +60,7 @@ textarea{min-height:90px}
 button:disabled{opacity:.6;cursor:not-allowed}
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #5aa67e;outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
-[aria-live]{min-height:18px}
+[aria-live]{min-height:18px}.report-badges{display:flex;flex-wrap:wrap;gap:6px;margin:7px 0}.badge{display:inline-block;padding:5px 8px;border-radius:99px;font-size:11px;font-weight:700;background:#eef5f1;color:var(--green)}.badge.fresh{background:#e8f5ee}.badge.soon{background:#fff4d8;color:#765500}.badge.expired{background:#f7e6e6;color:#8b2020}.badge.removed{background:#ececec;color:#555}.report-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.report-actions .filter{margin:0!important;width:100%}.photo-card{width:100%;max-height:300px;object-fit:cover;border-radius:14px;margin-top:10px;display:block}.loading{display:flex;align-items:center;justify-content:center;gap:9px;padding:28px;color:var(--muted)}.spinner{width:18px;height:18px;border:3px solid #d7e4dd;border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}@media(max-width:520px){.report-actions{grid-template-columns:1fr}.photo-card{max-height:360px}}
 </style>
 </head>
 
@@ -106,6 +106,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <div class="map"><div id="map"></div></div>
 <button class="locbtn" onclick="useLocation()">📍 Use my current location</button>
 <button class="locbtn" id="nearMeButton" onclick="toggleNearMe()">📏 Near Me: Off</button>
+<button class="locbtn" onclick="centerOnMe()">🎯 Center on me</button>
 <div id="locationStatus" class="small">Location is optional. If you submit a report with location, the map uses an approximate area rather than your exact position.</div>
 <div class="notice">Map reports are community submissions. Check the site before travelling and respect private property.</div>
 <div id="mapReports"></div>
@@ -174,7 +175,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <button class="back" onclick="show('home')">← Home</button>
 <h2>Saved reports</h2>
 <div class="small">Keep useful finds handy on this device.</div>
-<div class="small">Saved reports stay on this device. They are not shared with your account.</div>
+<div class="small">Saved reports stay on this device. They are not shared with your account.</div><div id="savedSummary" class="small" style="margin-top:6px"></div>
 <div id="savedReports"></div>
 </section>
 
@@ -183,13 +184,15 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <h2>Recent reports</h2>
 <div class="small">Fresh community reports are shown first. Use search or categories to narrow the list.</div>
 
-<input
-  id="searchReports"
-  type="search"
-  placeholder="🔎 Search suburb, street, category..."
-  oninput="filterReports()"
->
-
+<input id="searchReports" type="search" placeholder="🔎 Search suburb, street, category..." oninput="filterReports()">
+<div class="filterbar" style="margin-top:8px">
+<button class="filter active" id="distance5" type="button" onclick="setDistanceFilter(5)">Within 5 km</button>
+<button class="filter" id="distance10" type="button" onclick="setDistanceFilter(10)">Within 10 km</button>
+<button class="filter" id="distance25" type="button" onclick="setDistanceFilter(25)">Within 25 km</button>
+<button class="filter" id="distanceAll" type="button" onclick="setDistanceFilter(null)">Any distance</button>
+</div>
+<div class="filterbar"><button class="filter active" id="sortNewest" type="button" onclick="setSortMode('newest')">Newest</button><button class="filter" id="sortClosest" type="button" onclick="setSortMode('closest')">Closest</button></div>
+<div id="searchLocationHint" class="small" style="margin-bottom:8px"></div>
 <div id="reports"></div>
 
 </section>
@@ -289,6 +292,8 @@ let userPos=null;
 let userLocationAccuracy=350;
 let currentFilter="All";
 let nearMeOnly=false;
+let distanceFilter=null;
+let sortMode="newest";
 let photoData="";
 let photoFile=null;
 let isLoadingReports=false;
