@@ -668,6 +668,26 @@ async function shareReport(id){
   }
 }
 
+function openInitialRoute(){
+  const hash=window.location.hash;
+  if(!hash)return;
+  if(/^#report=/.test(hash))return;
+  const routes={
+    "#home":"home",
+    "#mapview":"mapview",
+    "#report":"report",
+    "#recent":"recent",
+    "#saved":"saved",
+    "#account":"account",
+    "#privacy":"privacy",
+    "#guidelines":"guidelines",
+    "#terms":"terms",
+    "#councils":"councils"
+  };
+  const target=routes[hash];
+  if(target&&document.getElementById(target))show(target);
+}
+
 function openSharedReport(){
   const match=window.location.hash.match(/^#report=(.+)$/);
   if(!match)return;
@@ -978,6 +998,11 @@ db.auth.onAuthStateChange((_event,session)=>{
   renderAuthIdentity(currentUser);
 });
 loadReports();
+openInitialRoute();
+window.addEventListener("hashchange",()=>{
+  if(window.location.hash.startsWith("#report="))return;
+  openInitialRoute();
+});
 
 window.addEventListener("beforeinstallprompt",event=>{
   event.preventDefault();
