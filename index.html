@@ -119,9 +119,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <input id="street" placeholder="e.g. near the shopping centre">
 </label>
 
-<label>What did you see?</label>
-
-<div class="checks">
+<fieldset style="border:0;padding:0;margin:0">
+<legend style="font-weight:700;margin-bottom:8px">What did you see?</legend>
+<div class="checks" role="group" aria-label="Clean-up item categories">
 <label><input type="checkbox" value="Tools">Tools</label>
 <label><input type="checkbox" value="Lawn equipment">Lawn equipment</label>
 <label><input type="checkbox" value="Furniture">Furniture</label>
@@ -129,6 +129,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <label><input type="checkbox" value="Electronics">Electronics</label>
 <label><input type="checkbox" value="Other">Other</label>
 </div>
+</fieldset>
 
 <label>Photo <span class="small">(optional)</span>
 <input id="photo" type="file" accept="image/*" capture="environment" onchange="previewPhoto(event)">
