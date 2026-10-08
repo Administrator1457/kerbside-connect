@@ -9,7 +9,7 @@ on:
       - "v*"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   android:
@@ -54,6 +54,17 @@ jobs:
           name: kerbside-connect-android-apk
           path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+
+      - name: Publish latest Android APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          APK_PATH=$(find android/app/build/outputs/apk/debug -maxdepth 1 -name '*.apk' | head -n 1)
+          if gh release view android-latest >/dev/null 2>&1; then
+            gh release upload android-latest "$APK_PATH#Kerbside-Connect.apk" --clobber
+          else
+            gh release create android-latest "$APK_PATH#Kerbside-Connect.apk"               --target "$GITHUB_SHA"               --title "Kerbside Connect Android"               --notes "Latest official installable Android APK for Kerbside Connect."
+          fi
 
       - name: Build Android release bundle
         working-directory: android
