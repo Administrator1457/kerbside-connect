@@ -60,6 +60,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           APK_PATH=$(find android/app/build/outputs/apk/debug -maxdepth 1 -name '*.apk' | head -n 1)
+          cp "$APK_PATH" "android/app/build/outputs/apk/debug/Kerbside-Connect.apk"
+          APK_PATH="android/app/build/outputs/apk/debug/Kerbside-Connect.apk"
           if gh release view android-latest >/dev/null 2>&1; then
             gh release upload android-latest "$APK_PATH#Kerbside-Connect.apk" --clobber
           else
