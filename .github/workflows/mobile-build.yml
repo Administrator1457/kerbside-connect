@@ -63,7 +63,10 @@ jobs:
           if gh release view android-latest >/dev/null 2>&1; then
             gh release upload android-latest "$APK_PATH#Kerbside-Connect.apk" --clobber
           else
-            gh release create android-latest "$APK_PATH#Kerbside-Connect.apk"               --target "$GITHUB_SHA"               --title "Kerbside Connect Android"               --notes "Latest official installable Android APK for Kerbside Connect."
+            gh release create android-latest "$APK_PATH#Kerbside-Connect.apk" \
+              --target "$GITHUB_SHA" \
+              --title "Kerbside Connect Android" \
+              --notes "Latest official installable Android APK for Kerbside Connect."
           fi
 
       - name: Build Android release bundle
@@ -95,7 +98,7 @@ jobs:
         run: |
           rm -rf www
           mkdir -p www
-          cp index.html manifest.webmanifest sw.js icon.svg www/
+          cp index.html manifest.webmanifest sw.js icon.svg privacy-policy.html www/
 
       - name: Add iOS platform
         run: npx cap add ios
@@ -105,7 +108,13 @@ jobs:
 
       - name: Archive iOS project
         run: |
-          xcodebuild -project ios/App/App.xcodeproj             -scheme App             -configuration Release             -sdk iphoneos             -archivePath build/KerbsideConnect.xcarchive             archive             CODE_SIGNING_ALLOWED=NO
+          xcodebuild -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/KerbsideConnect.xcarchive \
+            archive \
+            CODE_SIGNING_ALLOWED=NO
 
       - name: Upload iOS archive
         uses: actions/upload-artifact@v4
