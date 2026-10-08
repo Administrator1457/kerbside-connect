@@ -38,7 +38,7 @@ header p{margin:5px 0 0;opacity:.88;font-size:14px}
 .report{margin-top:12px;overflow-wrap:anywhere}
 .tag{display:inline-block;background:var(--mint);color:var(--green);padding:5px 9px;border-radius:99px;font-size:12px;margin:3px}
 .small{color:var(--muted);font-size:13px;line-height:1.45}.hero{background:linear-gradient(135deg,#12372a,#2e7d5b);color:white;border-radius:22px;padding:22px;margin-bottom:16px;position:relative;overflow:hidden;box-shadow:0 4px 18px #0002}.hero::after{content:"";position:absolute;width:170px;height:170px;border-radius:50%;right:-72px;top:-72px;background:#ffffff12}.hero h2{margin:0 0 6px;font-size:23px;position:relative}.hero p{position:relative}.hero p{margin:0;opacity:.88;font-size:14px}.status{display:inline-block;margin-top:12px;padding:6px 10px;border-radius:99px;background:#ffffff1c;font-size:12px}.report-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.verified{white-space:nowrap;background:#e8f5ee;color:var(--green);border-radius:99px;padding:5px 8px;font-size:11px;font-weight:700}
-.map{height:360px;border-radius:18px;overflow:hidden;background:#dcefe4}
+.map{height:360px;border-radius:18px;overflow:hidden;background:#dcefe4;position:relative}.map-status{padding:9px 11px;margin-top:8px;border-radius:12px;background:#eef5f1;color:var(--muted);font-size:12px;display:none}.map-status.show{display:block}
 .filterbar{display:flex;gap:7px;overflow:auto;padding:4px 0 10px}
 .filter{white-space:nowrap;border:1px solid #d6e0db;background:white;border-radius:99px;padding:8px 12px;font-weight:600;min-height:40px}
 .filter.active{background:var(--green);color:#fff}
@@ -104,7 +104,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 <button class="back" onclick="show('home')">← Home</button>
 <h2>Clean-ups near you</h2>
 <div class="filterbar" id="filters"></div>
-<div class="map"><div id="map"></div></div>
+<div class="map"><div id="map"></div></div><div id="mapStatus" class="map-status" aria-live="polite"></div>
 <button class="locbtn" onclick="useLocation()">📍 Use my current location</button>
 <button class="locbtn" id="nearMeButton" onclick="toggleNearMe()">📏 Near Me: Off</button>
 <button class="locbtn" onclick="centerOnMe()">🎯 Center on me</button>
@@ -289,6 +289,7 @@ SUPABASE_PUBLISHABLE_KEY
 let reportsCache=[];
 let map=null;
 let mapMarkers=[];
+let mapHasBeenPositioned=false;
 let userPos=null;
 let userLocationAccuracy=350;
 let currentFilter="All";
@@ -604,11 +605,16 @@ if(id==="mapview"){
 
 setTimeout(()=>{
 
-initMap();
-
-map.invalidateSize();
-
-renderMap();
+try{
+  initMap();
+  if(map){
+    map.invalidateSize();
+    renderMap();
+  }
+}catch(error){
+  console.error("Map initialisation error:",error);
+  showMapFallback("The interactive map could not load on this device. Your current reports are still available below.");
+}
 
 },100);
 
@@ -671,6 +677,9 @@ userId:r.user_id||null
 }));
 
 renderReports();
+ if(map){
+   setTimeout(()=>{try{map.invalidateSize();renderMap();}catch(e){console.error("Map refresh error:",e);}},0);
+ }
  isLoadingReports=false;
  openSharedReport();
 
@@ -1134,13 +1143,22 @@ function initMap(){
 
 if(map)return;
 
-map=L.map("map").setView(
+if(typeof L==="undefined"){
+  throw new Error("Leaflet is unavailable");
+}
+
+map=L.map("map",{
+  zoomControl:true,
+  preferCanvas:true
+}).setView(
 [-34.066,150.814],
 11
 );
 
+map.on("dragstart zoomstart",()=>{mapHasBeenPositioned=true;});
+
 L.tileLayer(
-"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+"https://tile.openstreetmap.org/{z}/{x}/{y}.png",
 {
 maxZoom:19,
 attribution:"© OpenStreetMap contributors"
@@ -1149,8 +1167,26 @@ attribution:"© OpenStreetMap contributors"
 
 }
 
+function showMapFallback(message){
+  const status=$("mapStatus");
+  if(status){
+    status.textContent=message;
+    status.classList.add("show");
+  }
+  const mapEl=$("map");
+  if(mapEl)mapEl.innerHTML='<div class="empty" style="padding:120px 18px">🗺️ Map temporarily unavailable.<br><span class="small">Use the current reported areas below.</span></div>';
+}
+
 function renderMap(){
-  if(!map)return;
+  const status=$("mapStatus");
+  if(!map){
+    if(typeof L==="undefined"){
+      showMapFallback("The map service could not load. Current reports remain available below.");
+    }
+    return;
+  }
+
+  if(status)status.classList.remove("show");
 
   mapMarkers.forEach(marker=>map.removeLayer(marker));
   mapMarkers=[];
@@ -1159,7 +1195,7 @@ function renderMap(){
   getReports()
     .filter(r=>currentFilter==="All"||r.cats.includes(currentFilter))
     .forEach(r=>{
-      if(r.lat==null||r.lng==null)return;
+      if(!Number.isFinite(r.lat)||!Number.isFinite(r.lng))return;
 
       const safePhoto=safePhotoUrl(r.photo);
       const photo=safePhoto
@@ -1187,6 +1223,14 @@ function renderMap(){
       marker.on("click",()=>marker.openPopup());
       mapMarkers.push(marker);
     });
+
+  if(mapMarkers.length && !mapHasBeenPositioned){
+    const bounds=L.featureGroup(mapMarkers).getBounds();
+    if(bounds.isValid()){
+      map.fitBounds(bounds.pad(0.15),{padding:[20,20],maxZoom:14,animate:false});
+      mapHasBeenPositioned=true;
+    }
+  }
 
   if(userPos){
     window.userLocationCircle=L.circle(
@@ -1243,6 +1287,7 @@ map.setView(
 [userPos.lat,userPos.lng],
 14
 );
+mapHasBeenPositioned=true;
 
 $("locationStatus").textContent=
 "Location enabled. Reports you submit use an approximate map area, not your exact position.";
