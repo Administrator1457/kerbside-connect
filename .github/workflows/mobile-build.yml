@@ -44,6 +44,17 @@ jobs:
       - name: Sync web app
         run: npx cap sync android
 
+      - name: Build Android installable APK
+        working-directory: android
+        run: ./gradlew assembleDebug
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: kerbside-connect-android-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
       - name: Build Android release bundle
         working-directory: android
         run: ./gradlew bundleRelease
